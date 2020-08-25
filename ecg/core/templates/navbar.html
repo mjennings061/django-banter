@@ -1,9 +1,9 @@
 <!-- Nav bar (logo) https://materializecss.com/navbar.html -->
 <nav class="indigo darken-4">
 <div class="nav-wrapper">
-  <a href="#" class="brand-logo">NIBEC Cloud Computing</a>
+  <a href="{% url 'index' %}" class="brand-logo">NIBEC Cloud Computing</a>
   <ul id="nav-mobile" class="right hide-on-med-and-down">
-    <li><a href="/">Home</a></li>
+    <li><a href="{% url 'index' %}">Home</a></li>
       {# If a user is logged in, show a different navbar #}
       {% if user.is_authenticated %}
         <li><a href="/account">{{ user.username }}</a></li>
