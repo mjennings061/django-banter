@@ -9,17 +9,6 @@ C:.
 │   db.sqlite3
 │   manage.py
 │   tree.txt
-│   
-├───.idea
-│   │   .gitignore
-│   │   ecg.iml
-│   │   misc.xml
-│   │   modules.xml
-│   │   vcs.xml
-│   │   workspace.xml
-│   │   
-│   └───inspectionProfiles
-│           profiles_settings.xml
 │           
 ├───core
 │   │   admin.py
