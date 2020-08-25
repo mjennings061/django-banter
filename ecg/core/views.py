@@ -68,10 +68,11 @@ def upload(request):
     form = UploadFileForm()
     if request.method == "POST":
         user = User.objects.get(username=request.user.username)
-        form = UploadFileForm(request.POST)
+        form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
             file = File(
                 name=form.cleaned_data["name"],
+                uploaded_file=form.files["uploaded_file"],
                 user=user,
             )
             file.save()

@@ -1,2 +1,5 @@
 
 tree.txt
+ecg/core/__pycache__/
+*.pyc
+*.pyc

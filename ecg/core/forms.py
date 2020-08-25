@@ -20,5 +20,7 @@ class NewUserForm(UserCreationForm):
         return user
 
 
-class UploadFileForm(forms.Form):
-    name = forms.CharField(max_length=100)
+class UploadFileForm(forms.ModelForm):
+    class Meta:
+        model = File
+        fields = ('name', 'uploaded_file',)

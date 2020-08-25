@@ -2,9 +2,9 @@
 
 {% block content %}
     <!-- This will produce a card https://materializecss.com/cards.html -->
-    <form method="POST">
+    <form method="POST" enctype="multipart/form-data">
         {% csrf_token %}
         {{ form.as_p }} {# build the form elsewhere #}
-        <button class="btn" style="background-color: lightblue type="submit">Upload</button>
+        <button class="btn light-blue" type="submit">Upload</button>
     </form>
 {% endblock %}
