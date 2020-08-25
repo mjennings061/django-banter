@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm  # import DJango's form to register
 from django.contrib.auth.models import User     # import django's model for the user
+from core.models import File    # created file form
 
 
 # create a new form
@@ -17,3 +18,7 @@ class NewUserForm(UserCreationForm):
         if commit:
             user.save()
         return user
+
+
+class UploadFileForm(forms.Form):
+    name = forms.CharField(max_length=100)

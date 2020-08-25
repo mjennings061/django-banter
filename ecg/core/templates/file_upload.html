@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <!-- This will produce a card https://materializecss.com/cards.html -->
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }} {# build the form elsewhere #}
+        <button class="btn" style="background-color: lightblue type="submit">Upload</button>
+    </form>
+{% endblock %}

@@ -1,8 +1,10 @@
 from django.shortcuts import render, redirect
-from .forms import NewUserForm  # import our own custom form
+from .forms import NewUserForm, UploadFileForm  # import our own custom form
 from django.contrib import messages     # alert the user
 from django.contrib.auth import login, logout as django_logout, authenticate     # user handling (register)
 from django.contrib.auth.forms import AuthenticationForm
+from core.models import File
+from django.contrib.auth.models import User     # import django's model for the user
 
 
 # Create your views here.
@@ -60,3 +62,24 @@ def login_request(request):
     return render(request,
                   "login.html",
                   {"form": form})
+
+
+def upload(request):
+    form = UploadFileForm()
+    if request.method == "POST":
+        user = User.objects.get(username=request.user.username)
+        form = UploadFileForm(request.POST)
+        if form.is_valid():
+            file = File(
+                name=form.cleaned_data["name"],
+                user=user,
+            )
+            file.save()
+            messages.info(request, f"File uploaded")
+        else:
+            messages.error(request, f"File not uploaded")
+
+    context = {
+        'form': form,
+    }
+    return render(request, 'file_upload.html', context)
