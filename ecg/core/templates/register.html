@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <!-- This will produce a card https://materializecss.com/cards.html -->
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }} {# build the form elsewhere #}
+        <button class="btn" style="background-color: #f8c1c3" type="submit">Register</button>
+    </form>
+    <p>If you already have an account, <a href="/login"><strong>login</strong></a> instead.</p>
+{% endblock %}
