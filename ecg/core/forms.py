@@ -23,4 +23,4 @@ class NewUserForm(UserCreationForm):
 class UploadFileForm(forms.ModelForm):
     class Meta:
         model = File
-        fields = ('name', 'uploaded_file',)
+        fields = ('name', 'uploaded_file', 'format')
