@@ -4,21 +4,11 @@ Investigating the use of Django to manage and execute algorithms.
 ## Structure
 Core project is named 'ecg'. There is a single app called 'core'. The base HTML file is templates/base.html. 
 
+```bash
 C:.
 │   db.sqlite3
 │   manage.py
 │   tree.txt
-│   
-├───.idea
-│   │   .gitignore
-│   │   ecg.iml
-│   │   misc.xml
-│   │   modules.xml
-│   │   vcs.xml
-│   │   workspace.xml
-│   │   
-│   └───inspectionProfiles
-│           profiles_settings.xml
 │           
 ├───core
 │   │   admin.py
@@ -65,3 +55,4 @@ C:.
 │           
 ├───templates
         base.html
+```
