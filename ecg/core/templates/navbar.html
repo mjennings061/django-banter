@@ -6,12 +6,12 @@
     <li><a href="{% url 'index' %}">Home</a></li>
       {# If a user is logged in, show a different navbar #}
       {% if user.is_authenticated %}
-        <li><a href="upload/">{{ user.username }}</a></li>
+        <li><a href="{% url 'show_files' %}">{{ user.username }}</a></li>
         <li><a href="{% url 'logout' %}">Logout</a></li>
         <li><a href="{% url 'upload' %}"><i class="material-icons">cloud_upload</i></a></li>
       {% else %}
-        <li><a href="/register">Register</a></li>
-        <li><a href="/login">Login</a></li>
+        <li><a href="{% url 'register' %}">Register</a></li>
+        <li><a href="{% url 'login' %}">Login</a></li>
       {% endif %}
   </ul>
 </div>

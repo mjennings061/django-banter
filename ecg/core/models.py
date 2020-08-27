@@ -93,6 +93,7 @@ class Algorithm(models.Model):
         return self.identifier
 
 
+# TODO design the handler to pass files to fitting functions
 # class Handler(models.Model):
 #     """Handles the output of one process to the input of another
 #
