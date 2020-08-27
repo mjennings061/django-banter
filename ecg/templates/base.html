@@ -2,11 +2,22 @@
 <html lang="en">
 <head>
     {% load static %}
-    <!-- Compiled and minified CSS -->
-    <link rel="stylesheet" type="text/css" href="{% static 'css/materialize.css' %}">
-    <!-- Compiled and minified JavaScript, must be at the start for Toasts to work -->
+     <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+{#    <link rel="stylesheet" type="text/css" href="{% static 'css/materialize.css' %}">#}
+
+    <!-- Compiled and minified JavaScript -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-    {# Icons using materialize https://materializecss.com/icons.html #}
+
+    {# Needed for select statements in forms #}
+     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var elems = document.querySelectorAll('select');
+            var instances = M.FormSelect.init(elems);
+        });
+    </script>
+
+
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <meta charset="UTF-8">
     <title>NIBEC</title>

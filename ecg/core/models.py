@@ -56,7 +56,8 @@ class File(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)  # unique ID for the file
     name = models.CharField(max_length=100, default=' ')    # user-given name for the file
     uploaded_file = models.FileField(upload_to=content_filename, null=True, max_length=200)     # the file itself
-    format = models.ForeignKey(FileFormat, on_delete=models.CASCADE, default=FileFormat.objects.values('name'))
+    format = models.ForeignKey(FileFormat, on_delete=models.CASCADE, related_name='formats',
+                               default=FileFormat.objects.values('name')[0])
 
     def __str__(self):
         return f"{self.user}_{self.id}"
@@ -84,9 +85,9 @@ class Algorithm(models.Model):
     description = models.TextField()
     language = models.CharField(max_length=1, choices=LANGUAGE_CHOICES, default=MATLAB)
     supported_input = models.ForeignKey(FileFormat, on_delete=models.CASCADE, related_name='supported_inputs',
-                                        default=FileFormat.objects.values('name'))
+                                        default=FileFormat.objects.values('name')[0])
     output_format = models.ForeignKey(FileFormat, on_delete=models.CASCADE, related_name='output_formats',
-                                      default=FileFormat.objects.values('name'))
+                                      default=FileFormat.objects.values('name')[0])
     # possible FileField with the algorithm? Or a path to the file?
 
     def __str__(self):
