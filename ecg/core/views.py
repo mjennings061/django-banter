@@ -1,8 +1,11 @@
 from django.shortcuts import render, redirect
-from .forms import NewUserForm  # import our own custom form
+from .forms import NewUserForm, UploadFileForm  # import our own custom form
 from django.contrib import messages     # alert the user
 from django.contrib.auth import login, logout as django_logout, authenticate     # user handling (register)
 from django.contrib.auth.forms import AuthenticationForm
+from core.models import File, FileFormat
+from django.contrib.auth.models import User     # import django's model for the user
+from django import forms    # to pre-fill a form
 
 
 # Create your views here.
@@ -60,3 +63,45 @@ def login_request(request):
     return render(request,
                   "login.html",
                   {"form": form})
+
+
+def upload(request):
+    # UploadFileForm.base_fields['format'] = forms.ModelChoiceField(queryset=FileFormat.objects.values('name'))
+    form = UploadFileForm()
+    if request.method == "POST":
+        user = User.objects.get(username=request.user.username)
+        form = UploadFileForm(request.POST, request.FILES)
+        if form.is_valid():
+            file = File(
+                name=form.cleaned_data["name"],
+                uploaded_file=form.files["uploaded_file"],
+                user=user,
+                format=form.cleaned_data["format"],
+            )
+            file.save()
+            messages.info(request, f"File uploaded")
+        else:
+            messages.error(request, f"File not uploaded")
+
+    context = {
+        'form': form,
+    }
+    return render(request, 'file_upload.html', context)
+
+
+# TODO Show only the file name, not the whole path (security)
+def show_files(request):
+    if request.user.is_authenticated:
+        current_user = request.user
+        files = File.objects.filter(user=current_user)
+    else:
+        current_user = None
+
+    context = {
+        'current_user': current_user,
+        'files': files,
+    }
+    return render(request, 'show_files.html', context)
+
+# TODO: Design form to pick a file and algorithm to run
+# TODO: Write algorithm calling function

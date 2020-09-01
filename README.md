@@ -1,49 +1,54 @@
-#django-banter
+# django-banter
 Investigating the use of Django to manage and execute algorithms.
 
 ## Structure
 Core project is named 'ecg'. There is a single app called 'core'. The base HTML file is templates/base.html. 
 
-     ecg
-    │   db.sqlite3
-    │   manage.py
-    │           
-    ├───core
-    │   │   admin.py
-    │   │   apps.py
-    │   │   forms.py
-    │   │   models.py
-    │   │   tests.py
-    │   │   urls.py
-    │   │   views.py
-    │   │   __init__.py
-    │   │   
-    │   │           
-    │   ├───templates
-    │           index.html
-    │           login.html
-    │           messages.html
-    │           navbar.html
-    │           register.html
-    │         
-    │           
-    ├───ecg
-    │   │   asgi.py
-    │   │   settings.py
-    │   │   urls.py
-    │   │   wsgi.py
-    │   │   __init__.py
-    │   │   
-    │   └───__pycache__
-    │           settings.cpython-38.pyc
-    │           urls.cpython-38.pyc
-    │           wsgi.cpython-38.pyc
-    │           __init__.cpython-38.pyc
-    │           
-    ├───static
-    │   ├───core
-    │   └───css
-    │           materialize.css
-    │           
-    ├───templates
-            base.html
+```bash
+ecg
+|   db.sqlite3
+|   manage.py
+|           
++---core
+|   |   admin.py
+|   |   apps.py
+|   |   forms.py
+|   |   models.py
+|   |   tests.py
+|   |   urls.py
+|   |   views.py
+|   |   __init__.py
+|   |          
+|   +---templates
+|   |       file_upload.html
+|   |       index.html
+|   |       login.html
+|   |       messages.html
+|   |       navbar.html
+|   |       register.html
+|   |       show_files.html
+|           
++---ecg
+|   |   asgi.py
+|   |   settings.py
+|   |   urls.py
+|   |   wsgi.py
+|   |   __init__.py
+|   |   
+|           
++---media
+|       mj_2abe59ca-6855-4cf3-8dec-e06bd59e96ce.csv
+|       SillyBilly_65a545a2-93d1-4811-b765-32b08bc27c4e.csv
+|       SillyBilly_6ea0357d-0289-4f6a-8f73-0daae04980eb.csv
+|       SillyBilly_761a838c-b711-48f0-984e-a50ae4a80e57.csv
+|       SillyBilly_8989c5a7-ad88-4b35-8712-f0df8a0e1a2b.csv
+|       SillyBilly_f823d1ff-7f8b-4443-b22c-10211a63dac6.csv
+|       
++---static
+|   +---core
+|   \---css
+|           materialize.css
+|           
++---templates
+|       base.html
+```

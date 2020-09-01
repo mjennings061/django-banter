@@ -1,0 +1,6 @@
+
+tree.txt
+ecg/core/__pycache__/
+*.pyc
+*.pyc
+ecg/core/__pycache__/forms.cpython-38.pyc

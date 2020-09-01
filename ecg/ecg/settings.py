@@ -126,3 +126,6 @@ STATICFILES_DIRS = [
 ]
 
 THUMBNAIL_HIGH_RESOLUTION = True    # easy_thumbnail for MACOS
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = 'media/'
