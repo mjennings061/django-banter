@@ -102,3 +102,6 @@ def show_files(request):
         'files': files,
     }
     return render(request, 'show_files.html', context)
+
+# TODO: Design form to pick a file and algorithm to run
+# TODO: Write algorithm calling function
