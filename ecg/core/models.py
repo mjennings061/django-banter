@@ -4,6 +4,9 @@ import uuid     # used for unique ID generation
 import os   # used for filename changes
 from django.conf import settings
 
+# TODO change models to include algorithm FileField
+# TODO add handler fields for algorithm output
+
 
 class FileFormat(models.Model):
     """Specifies file types used for data
@@ -73,6 +76,10 @@ class Algorithm(models.Model):
     output_format       Output format from the algorithm. Linked to FileFormat
 
     """
+    def algorithm_path(instance, filename):   # dynamic filename changing for the uploaded file when saving
+        filename_output = "algorithm/%s" % filename   # filename is username_id.ext e.g mj_45ds.jpeg
+        return os.path.join(settings.MEDIA_ROOT, filename_output)  # return filepath for storage
+
     MATLAB = "M"
     PYTHON = "P"
 
@@ -88,7 +95,7 @@ class Algorithm(models.Model):
                                         default=FileFormat.objects.values('name')[0])
     output_format = models.ForeignKey(FileFormat, on_delete=models.CASCADE, related_name='output_formats',
                                       default=FileFormat.objects.values('name')[0])
-    # possible FileField with the algorithm? Or a path to the file?
+    uploaded_algorithm = models.FileField(upload_to=algorithm_path, null=True, max_length=200)  # the file itself
 
     def __str__(self):
         return self.identifier
@@ -109,11 +116,3 @@ class Algorithm(models.Model):
 #     input_type = models.ForeignKey(FileFormat, on_delete=models.CASCADE, related_name='output_formats',
 #                                    default=FileFormat.objects.values('name'))
 #     output_type
-
-
-# write (box) model for algorithm
-# write (arrow) model for single-format handler
-# file format model - I/o choice, MIME type, description (opt.)
-
-# allow user to see all files belonging to them
-# single file running through single algorithm (for now)
