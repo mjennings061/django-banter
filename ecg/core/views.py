@@ -3,7 +3,7 @@ from .forms import NewUserForm, UploadFileForm  # import our own custom form
 from django.contrib import messages     # alert the user
 from django.contrib.auth import login, logout as django_logout, authenticate     # user handling (register)
 from django.contrib.auth.forms import AuthenticationForm
-from core.models import File, FileFormat
+from core.models import File, FileFormat, Algorithm
 from django.contrib.auth.models import User     # import django's model for the user
 from django import forms    # to pre-fill a form
 
@@ -103,6 +103,18 @@ def show_files(request):
     }
     return render(request, 'show_files.html', context)
 
+
 # TODO: Run a single MATLAB script
+def run(request):
+    if request.user.is_authenticated:
+        current_user = request.user
+        data_files = File.objects.filter(user=current_user)
+    context = {
+        'current_user': current_user,
+        'algorithms': Algorithm.objects.all(),
+        'data_files': data_files,
+    }
+    return render(request, 'run.html', context)
+
 # TODO: Design form to pick a file and algorithm to run
 # TODO: Write algorithm calling function

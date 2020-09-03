@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    {% if current_user.is_authenticated %}
+        <p>Processing</p>
+    {% else %}
+        <p>You must be logged in to view this content.</p>
+    {% endif %}
+{% endblock %}
