@@ -1,11 +1,12 @@
-from django.shortcuts import render, redirect
-from .forms import NewUserForm, UploadFileForm  # import our own custom form
-from django.contrib import messages     # alert the user
-from django.contrib.auth import login, logout as django_logout, authenticate     # user handling (register)
+from django.contrib import messages  # alert the user
+from django.contrib.auth import login, logout as django_logout, authenticate  # user handling (register)
 from django.contrib.auth.forms import AuthenticationForm
-from core.models import File, FileFormat
-from django.contrib.auth.models import User     # import django's model for the user
-from django import forms    # to pre-fill a form
+from django.contrib.auth.models import User  # import django's model for the user
+from django.shortcuts import render, redirect
+
+from core.models import File, Algorithm
+from core.mlab import run_file
+from .forms import NewUserForm, UploadFileForm  # import our own custom form
 
 
 # Create your views here.
@@ -103,5 +104,22 @@ def show_files(request):
     }
     return render(request, 'show_files.html', context)
 
-# TODO: Design form to pick a file and algorithm to run
+
+# TODO: Run a single MATLAB script
+def run(request):
+    if request.user.is_authenticated:
+        current_user = request.user
+        data_files = File.objects.filter(user=current_user)
+        file_path = 'C:/Users/MJ/OneDrive - Ulster University/Documents/PhD/Django/django-banter/ecg/media' \
+                    '/mj_6c493203-13fa-482f-a815-5821a9ed29c3.csv'
+        run_file(file_path)
+
+    context = {
+        'current_user': current_user,
+        'algorithms': Algorithm.objects.all(),
+        'data_files': data_files,
+    }
+    return render(request, 'run.html', context)
+
+# TODO: Design form to pick a file and algorithm to  run
 # TODO: Write algorithm calling function
