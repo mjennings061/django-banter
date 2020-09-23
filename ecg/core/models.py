@@ -3,8 +3,8 @@ from django.contrib.auth.models import User     # import django's model for the 
 import uuid     # used for unique ID generation
 import os   # used for filename changes
 from django.conf import settings
+import matlab.engine
 
-# TODO change models to include algorithm FileField
 # TODO add handler fields for algorithm output
 
 
@@ -79,6 +79,16 @@ class Algorithm(models.Model):
     def algorithm_path(instance, filename):   # dynamic filename changing for the uploaded file when saving
         filename_output = "algorithm/%s" % filename   # filename is username_id.ext e.g mj_45ds.jpeg
         return os.path.join(settings.MEDIA_ROOT, filename_output)  # return filepath for storage
+
+    # def run_file(self, file_path):
+    #     # eng = matlab.engine.start_matlab()    # start a new MATLAB session
+    #     self.eng = matlab.engine.connect_matlab()  # connect to an open MATLAB window
+    #     self.eng.addpath(r'C:\Users\MJ\OneDrive - Ulster University\Documents\PhD\Django\django-banter\ecg\media\algorithm',
+    #                 nargout=0)
+    #     file_id = eng.LPF_single_row(file_path, nargout=1)
+    #     # save as a new model instance of File
+    #     self.eng.quit()
+    #     return file_id
 
     MATLAB = "M"
     PYTHON = "P"

@@ -1,8 +1,0 @@
-function y = LPF_single_row(filePath)
-    dataIn = csvread(filePath); % read from a CSV file
-    dataOut = dataIn + 0.5; %
-    csvwrite(['C:\Users\MJ\OneDrive - Ulster University\' ...
-        'Documents\PhD\Django\django-banter\ecg\media\results\' ...
-        'LPF_single_row_result.csv'],dataOut);
-    y = 1;  % function was successful
-end

@@ -2,7 +2,7 @@
 
 {% block content %}
     {% if current_user.is_authenticated %}
-        <p>Processing</p>
+        <p>Processing for {{ current_user }}</p>
     {% else %}
         <p>You must be logged in to view this content.</p>
     {% endif %}

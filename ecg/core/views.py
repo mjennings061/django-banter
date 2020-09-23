@@ -1,3 +1,4 @@
+from django.http import HttpResponse, HttpResponseForbidden, HttpResponseRedirect
 from django.contrib import messages  # alert the user
 from django.contrib.auth import login, logout as django_logout, authenticate  # user handling (register)
 from django.contrib.auth.forms import AuthenticationForm
@@ -105,14 +106,27 @@ def show_files(request):
     return render(request, 'show_files.html', context)
 
 
-# TODO: Run a single MATLAB script
+# TODO complete download and delete to return the resultant file
+def download_result(file_id):
+    # TODO: Check the file ID exists and return a 404 if not
+    # TODO: Only let the user download their own results
+    response = HttpResponse(content_type='text/csv')    # TODO change to MIME type from File
+    response['Content-Disposition'] = f"attachment; filename='{file_id}.csv'"
+    return response
+
+
 def run(request):
+    # TODO: Render the available files and algorithms
+    # TODO: Download the resultant file
+    # TODO: Add a form and POST to select the file and algorithm to run
+    # TODO: Add a dynamic form to select multiple compatible algorithms
     if request.user.is_authenticated:
         current_user = request.user
         data_files = File.objects.filter(user=current_user)
         file_path = 'C:/Users/MJ/OneDrive - Ulster University/Documents/PhD/Django/django-banter/ecg/media' \
                     '/mj_6c493203-13fa-482f-a815-5821a9ed29c3.csv'
-        run_file(file_path)
+        file_id = run_file(file_path)
+        download_result(file_id)
 
     context = {
         'current_user': current_user,
