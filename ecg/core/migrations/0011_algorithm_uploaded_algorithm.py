@@ -14,6 +14,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='algorithm',
             name='uploaded_algorithm',
-            field=models.FileField(max_length=200, null=True, upload_to=core.models.Algorithm.algorithm_path),
+            field=models.FileField(max_length=200, null=True, upload_to=core.models.Subprocess.subprocess_path),
         ),
     ]

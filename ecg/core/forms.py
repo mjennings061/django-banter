@@ -1,5 +1,5 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm  # import DJango's form to register
+from django.contrib.auth.forms import UserCreationForm  # import Django's form to register
 from django.contrib.auth.models import User     # import django's model for the user
 from core.models import File, FileFormat    # created file form
 from django.forms import ModelForm, Select
@@ -21,6 +21,7 @@ class NewUserForm(UserCreationForm):
         return user
 
 
+#
 class FileFormatChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
         return obj.name

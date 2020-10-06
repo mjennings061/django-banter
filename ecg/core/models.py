@@ -5,8 +5,6 @@ import os   # used for filename changes
 from django.conf import settings
 import matlab.engine
 
-# TODO add handler fields for algorithm output
-
 
 class FileFormat(models.Model):
     """Specifies file types used for data
@@ -66,7 +64,7 @@ class File(models.Model):
         return f"{self.user}_{self.id}"
 
 
-class Algorithm(models.Model):
+class Subprocess(models.Model):
     """Admin-uploaded algorithms
 
     identifier          Descriptive ID of the algorithm and owner e.g. 'mat.mj.lowpass_filter'
@@ -76,23 +74,27 @@ class Algorithm(models.Model):
     output_format       Output format from the algorithm. Linked to FileFormat
 
     """
-    def algorithm_path(instance, filename):   # dynamic filename changing for the uploaded file when saving
+    def subprocess_path(instance, filename):   # dynamic filename changing for the uploaded file when saving
         filename_output = "algorithm/%s" % filename   # filename is username_id.ext e.g mj_45ds.jpeg
         return os.path.join(settings.MEDIA_ROOT, filename_output)  # return filepath for storage
 
-    # def run_file(self, file_path):
-    #     # eng = matlab.engine.start_matlab()    # start a new MATLAB session
-    #     self.eng = matlab.engine.connect_matlab()  # connect to an open MATLAB window
-    #     self.eng.addpath(r'C:\Users\MJ\OneDrive - Ulster University\Documents\PhD\Django\django-banter\ecg\media\algorithm',
-    #                 nargout=0)
-    #     file_id = eng.LPF_single_row(file_path, nargout=1)
-    #     # save as a new model instance of File
-    #     self.eng.quit()
-    #     return file_id
+    def run_file(self, file_path):
+        if self.language == "M":
+            # eng = matlab.engine.start_matlab()    # start a new MATLAB session
+            self.eng = matlab.engine.connect_matlab()  # connect to an open MATLAB window open at ecg\media
+            self.eng.addpath(
+                r'C:\Users\MJ\OneDrive - Ulster University\Documents\PhD\Django\django-banter\ecg\media\algorithm',
+                nargout=0)
+            file_id = self.eng.LPF_single_row(file_path, nargout=1)
+            # save as a new model instance of File
+            self.eng.quit()
+        # TODO: Add a python run option
+        if self.language == "P":
+            file_id = 0
+        return file_id
 
     MATLAB = "M"
     PYTHON = "P"
-
     LANGUAGE_CHOICES = (
         (MATLAB, "MATLAB Function"),
         (PYTHON, "Python Function"),
@@ -105,7 +107,7 @@ class Algorithm(models.Model):
                                         default=FileFormat.objects.values('name')[0])
     output_format = models.ForeignKey(FileFormat, on_delete=models.CASCADE, related_name='output_formats',
                                       default=FileFormat.objects.values('name')[0])
-    uploaded_algorithm = models.FileField(upload_to=algorithm_path, null=True, max_length=200)  # the file itself
+    uploaded_subprocess = models.FileField(upload_to=subprocess_path, null=True, max_length=200)  # the file itself
 
     def __str__(self):
         return self.identifier

@@ -5,8 +5,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User  # import django's model for the user
 from django.shortcuts import render, redirect
 
-from core.models import File, Algorithm
-from core.mlab import run_file
+from core.models import File, Subprocess
 from .forms import NewUserForm, UploadFileForm  # import our own custom form
 
 
@@ -115,7 +114,7 @@ def download_result(file_id):
     return response
 
 
-def run(request):
+def run_subprocess(request):
     # TODO: Render the available files and algorithms
     # TODO: Download the resultant file
     # TODO: Add a form and POST to select the file and algorithm to run
@@ -124,16 +123,19 @@ def run(request):
         current_user = request.user
         data_files = File.objects.filter(user=current_user)
         file_path = 'C:/Users/MJ/OneDrive - Ulster University/Documents/PhD/Django/django-banter/ecg/media' \
-                    '/mj_6c493203-13fa-482f-a815-5821a9ed29c3.csv'
-        file_id = run_file(file_path)
-        download_result(file_id)
+                    '/mj_6c493203-13fa-482f-a815-5821a9ed29c3.csv'  # generic file path to get started
+        # file_id = run_file(file_path)
+        # download_result(file_id)
+        # subprocesses = Subprocess.objects.filter(user=current_user)
+        subprocess = Subprocess.objects.get(identifier='mat.mj.addHalf')
+        file_id = subprocess.run_file(file_path)    # run the subprocess
 
     context = {
         'current_user': current_user,
-        'algorithms': Algorithm.objects.all(),
+        'algorithms': Subprocess.objects.all(),
         'data_files': data_files,
     }
-    return render(request, 'run.html', context)
+    return render(request, 'run_subprocess.html', context)
 
-# TODO: Design form to pick a file and algorithm to  run
+# TODO: Design form to pick a file and algorithm to run
 # TODO: Write algorithm calling function
