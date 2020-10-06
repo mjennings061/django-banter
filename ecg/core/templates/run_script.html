@@ -3,6 +3,7 @@
 {% block content %}
     {% if current_user.is_authenticated %}
         <p>Processing for {{ current_user }}</p>
+        {# TODO: Add form to select file and compatible algorithms here #}
     {% else %}
         <p>You must be logged in to view this content.</p>
     {% endif %}

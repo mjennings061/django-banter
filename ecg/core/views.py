@@ -5,7 +5,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User  # import django's model for the user
 from django.shortcuts import render, redirect
 
-from core.models import File, Subprocess
+from core.models import File, Script
 from .forms import NewUserForm, UploadFileForm  # import our own custom form
 
 
@@ -114,28 +114,32 @@ def download_result(file_id):
     return response
 
 
-def run_subprocess(request):
+def run_script(request):
     # TODO: Render the available files and algorithms
-    # TODO: Download the resultant file
     # TODO: Add a form and POST to select the file and algorithm to run
+    # TODO: Download the resultant file
     # TODO: Add a dynamic form to select multiple compatible algorithms
     if request.user.is_authenticated:
-        current_user = request.user
-        data_files = File.objects.filter(user=current_user)
-        file_path = 'C:/Users/MJ/OneDrive - Ulster University/Documents/PhD/Django/django-banter/ecg/media' \
-                    '/mj_6c493203-13fa-482f-a815-5821a9ed29c3.csv'  # generic file path to get started
-        # file_id = run_file(file_path)
-        # download_result(file_id)
-        # subprocesses = Subprocess.objects.filter(user=current_user)
-        subprocess = Subprocess.objects.get(identifier='mat.mj.addHalf')
-        file_id = subprocess.run_file(file_path)    # run the subprocess
+        current_user = request.user     # get the logged in user
+        data_files = File.objects.filter(user=current_user)     # get all files associated with the user
+        scripts = Script.objects.all()     # get all scripts
+        if request.method == "POST":
+            # download_result(file_id)
+            file = data_files.get(name='007b Trimmed Data')
+            file_path = file.uploaded_file.path
+            script = Script.objects.get(identifier='mat.mj.addHalf')
+            file_id = script.run_file(file_path)  # run the script
+    else:
+        current_user = None
+        scripts = None
+        data_files = None
 
     context = {
         'current_user': current_user,
-        'algorithms': Subprocess.objects.all(),
+        'script': scripts,
         'data_files': data_files,
     }
-    return render(request, 'run_subprocess.html', context)
+    return render(request, 'run_script.html', context)
 
 # TODO: Design form to pick a file and algorithm to run
 # TODO: Write algorithm calling function

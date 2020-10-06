@@ -3,7 +3,7 @@
 {% block content %}
     {% if current_user.is_authenticated %}
         <br>
-        <a href="{% url 'run' %}" class="waves-effect waves-light btn-large">
+        <a href="{% url 'run_script' %}" class="waves-effect waves-light btn-large">
             <i class="material-icons right">autorenew</i>Run</a>
         <br>
         <h5>Files for {{ current_user.username }}:</h5>

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import File, FileFormat, Subprocess    # Algorithm, Handler
+from .models import File, FileFormat, Script, Execution    # Handler
 
 
 # Register your models here.
@@ -13,13 +13,14 @@ class FileFormatAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(Subprocess)
+@admin.register(Script)
 class SubprocessAdmin(admin.ModelAdmin):
     pass
 
-# @admin.register(Algorithm)
-# class AlgorithmAdmin(admin.ModelAdmin):
-#     pass
+
+@admin.register(Execution)
+class ExecutionAdmin(admin.ModelAdmin):
+    pass
 
 
 # @admin.register(Handler)

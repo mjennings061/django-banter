@@ -64,7 +64,7 @@ class File(models.Model):
         return f"{self.user}_{self.id}"
 
 
-class Subprocess(models.Model):
+class Script(models.Model):
     """Admin-uploaded algorithms
 
     identifier          Descriptive ID of the algorithm and owner e.g. 'mat.mj.lowpass_filter'
@@ -72,9 +72,10 @@ class Subprocess(models.Model):
     language            Programming language used e.g. 'MATLAB'
     supported_input     Supported file inputs. Linked to FileFormat
     output_format       Output format from the algorithm. Linked to FileFormat
+    uploaded_script The script file itself
 
     """
-    def subprocess_path(instance, filename):   # dynamic filename changing for the uploaded file when saving
+    def script_path(instance, filename):   # dynamic filename changing for the uploaded file when saving
         filename_output = "algorithm/%s" % filename   # filename is username_id.ext e.g mj_45ds.jpeg
         return os.path.join(settings.MEDIA_ROOT, filename_output)  # return filepath for storage
 
@@ -107,24 +108,36 @@ class Subprocess(models.Model):
                                         default=FileFormat.objects.values('name')[0])
     output_format = models.ForeignKey(FileFormat, on_delete=models.CASCADE, related_name='output_formats',
                                       default=FileFormat.objects.values('name')[0])
-    uploaded_subprocess = models.FileField(upload_to=subprocess_path, null=True, max_length=200)  # the file itself
+    uploaded_script = models.FileField(upload_to=script_path, null=True, max_length=200)  # the file itself
 
     def __str__(self):
         return self.identifier
 
 
-# TODO design the handler to pass files to fitting functions
-# class Handler(models.Model):
-#     """Handles the output of one process to the input of another
-#
-#     identifier      A unique identifier for the handler, also the name of the executable plugin
-#     description     Detailed explanation of the handler
-#     input_type      Input file type for the chosen algorithm
-#
-#     """
-#
-#     identifier = models.CharField(max_length=250)
-#     description = models.TextField()
-#     input_type = models.ForeignKey(FileFormat, on_delete=models.CASCADE, related_name='output_formats',
-#                                    default=FileFormat.objects.values('name'))
-#     output_type
+class Execution(models.Model):
+    """File-Script-Result pair for executing scripts
+
+    identifier          Unique ID of the instance
+    data_file           The file to be processed
+    script              The executable file to process the file
+    result              The result of executing data_file
+
+    """
+    def run_file(self, file_path):
+        if self.script.language == "M":
+            self.eng = matlab.engine.connect_matlab()  # connect to an open MATLAB window open at ecg\media
+            self.eng.addpath(
+                r'C:\Users\MJ\OneDrive - Ulster University\Documents\PhD\Django\django-banter\ecg\media\algorithm',
+                nargout=0)
+            file_id = self.eng.LPF_single_row(file_path, nargout=1)
+            # save as a new model instance of File
+            self.eng.quit()
+        # TODO: Add a python run option
+        if self.script.language == "P":
+            file_id = 0
+        return file_id
+
+    identifier = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)  # unique ID for the file
+    data_input = models.ForeignKey(File, on_delete=models.CASCADE, related_name='data_input', default=None)
+    script = models.ForeignKey(Script, on_delete=models.CASCADE, related_name='script', default=None)
+    data_output = models.ForeignKey(File, on_delete=models.CASCADE, related_name='data_output', null=True)

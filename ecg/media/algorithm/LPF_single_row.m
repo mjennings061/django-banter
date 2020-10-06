@@ -6,7 +6,7 @@ function y = LPF_single_row(filePath)
     
     %% Django-specific operations
     rng('shuffle');     % to help prevent the same 'random number'
-    id = randi(2^16);   % generate a random number as the file ID
+    id = randi(2^32);   % generate a random number as the file ID
     path_dir = ['C:/Users/MJ/OneDrive - Ulster University/' ...
         'Documents/PhD/Django/django-banter/ecg/media/results/%d.csv'];
     file_id = sprintf(path_dir,id); % output file ID is in the name

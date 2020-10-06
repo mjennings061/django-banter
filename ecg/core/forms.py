@@ -1,11 +1,10 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm  # import Django's form to register
 from django.contrib.auth.models import User     # import django's model for the user
-from core.models import File, FileFormat    # created file form
-from django.forms import ModelForm, Select
+from core.models import File, FileFormat, Script    # created file form
 
 
-# create a new form
+# Form to register as a new user
 class NewUserForm(UserCreationForm):
     email = forms.EmailField(required=True)
 
@@ -31,3 +30,7 @@ class UploadFileForm(forms.ModelForm):
     class Meta:
         model = File
         fields = ('name', 'uploaded_file', 'format')
+
+
+class ScriptForm(forms.ModelForm):
+    pass
