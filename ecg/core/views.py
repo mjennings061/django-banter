@@ -5,7 +5,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User  # import django's model for the user
 from django.shortcuts import render, redirect
 
-from core.models import File, Script
+from core.models import File, Script, Execution
 from .forms import NewUserForm, UploadFileForm  # import our own custom form
 
 
@@ -123,12 +123,14 @@ def run_script(request):
         current_user = request.user     # get the logged in user
         data_files = File.objects.filter(user=current_user)     # get all files associated with the user
         scripts = Script.objects.all()     # get all scripts
+
         if request.method == "POST":
-            # download_result(file_id)
-            file = data_files.get(name='007b Trimmed Data')
-            file_path = file.uploaded_file.path
-            script = Script.objects.get(identifier='mat.mj.addHalf')
-            file_id = script.run_file(file_path)  # run the script
+            execution = Execution()     # each execution of a script will have its own instance
+            execution.data_input = data_files.get(name='007b Trimmed Data')  # assign input and script to run
+            execution.script = Script.objects.get(identifier='mat.mj.addHalf')
+            file_id = execution.run_file()  # run the script
+            if file_id is not 0:    # if the script executed
+                execution.save()    # save the instance to the database
     else:
         current_user = None
         scripts = None

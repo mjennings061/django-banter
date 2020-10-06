@@ -61,7 +61,7 @@ class File(models.Model):
                                default=FileFormat.objects.values('name')[0])
 
     def __str__(self):
-        return f"{self.user}_{self.id}"
+        return self.name
 
 
 class Script(models.Model):
@@ -78,21 +78,6 @@ class Script(models.Model):
     def script_path(instance, filename):   # dynamic filename changing for the uploaded file when saving
         filename_output = "algorithm/%s" % filename   # filename is username_id.ext e.g mj_45ds.jpeg
         return os.path.join(settings.MEDIA_ROOT, filename_output)  # return filepath for storage
-
-    def run_file(self, file_path):
-        if self.language == "M":
-            # eng = matlab.engine.start_matlab()    # start a new MATLAB session
-            self.eng = matlab.engine.connect_matlab()  # connect to an open MATLAB window open at ecg\media
-            self.eng.addpath(
-                r'C:\Users\MJ\OneDrive - Ulster University\Documents\PhD\Django\django-banter\ecg\media\algorithm',
-                nargout=0)
-            file_id = self.eng.LPF_single_row(file_path, nargout=1)
-            # save as a new model instance of File
-            self.eng.quit()
-        # TODO: Add a python run option
-        if self.language == "P":
-            file_id = 0
-        return file_id
 
     MATLAB = "M"
     PYTHON = "P"
@@ -123,15 +108,24 @@ class Execution(models.Model):
     result              The result of executing data_file
 
     """
-    def run_file(self, file_path):
-        if self.script.language == "M":
+    def run_file(self):
+        if self.script.language == "M":     # if the script is a MATLAB file
             self.eng = matlab.engine.connect_matlab()  # connect to an open MATLAB window open at ecg\media
-            self.eng.addpath(
+            self.eng.addpath(   # add the algorithms folder to the MATLAB path
                 r'C:\Users\MJ\OneDrive - Ulster University\Documents\PhD\Django\django-banter\ecg\media\algorithm',
                 nargout=0)
-            file_id = self.eng.LPF_single_row(file_path, nargout=1)
-            # save as a new model instance of File
-            self.eng.quit()
+            file_id = self.eng.LPF_single_row(self.data_input.uploaded_file.path, nargout=1)  # run file through MATLAB
+            self.eng.quit()         # stop the MATLAB engine for this instance
+            if file_id is not 0:    # if the script processed ok
+                # TODO: Move new file declaration into its own method
+                result_file = File()    # create an instance of File to store the result file in
+                result_file.name = f"result_{int(file_id)}"     # the file name is the same as the MATLAB output
+                result_file.user = self.data_input.user         # user is required to attach the files to
+                result_file.format = self.script.output_format  # format is derived from the script's default format
+                # point to the result file itself
+                result_file.uploaded_file = os.path.join(settings.MEDIA_ROOT, f"results/{int(file_id)}.csv")
+                result_file.save()
+                self.data_output = result_file  # save all of result_file to data_output
         # TODO: Add a python run option
         if self.script.language == "P":
             file_id = 0
