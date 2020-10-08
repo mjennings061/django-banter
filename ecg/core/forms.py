@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm  # import Django's form to register
 from django.contrib.auth.models import User     # import django's model for the user
-from core.models import File, FileFormat, Script    # created file form
+from core.models import File, FileFormat, Script, Execution    # created file form
 
 
 # Form to register as a new user
@@ -32,5 +32,14 @@ class UploadFileForm(forms.ModelForm):
         fields = ('name', 'uploaded_file', 'format')
 
 
-class ScriptForm(forms.ModelForm):
-    pass
+class ScriptForm(forms.Form):
+    # all files associated with the user
+    file_select = forms.ModelChoiceField(
+        label="File",
+        queryset=File.objects.all()
+    )
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super(ScriptForm, self).__init__(*args, **kwargs)
+        self.fields['file_select'].queryset = File.objects.filter(user=self.user)

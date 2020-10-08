@@ -2,8 +2,17 @@
 
 {% block content %}
     {% if current_user.is_authenticated %}
-        <p>Processing for {{ current_user }}</p>
+        <p>{{ current_user }}, select a file to process </p>
         {# TODO: Add form to select file and compatible algorithms here #}
+        <form method="POST">
+            {% csrf_token %}
+            {{ form.as_p }} {# build the form elsewhere #}
+            <button
+                class="btn waves-effect waves-light indigo darken-4"
+                type="submit" name="file select">
+                Select
+            </button>
+        </form>
     {% else %}
         <p>You must be logged in to view this content.</p>
     {% endif %}

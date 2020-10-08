@@ -6,7 +6,7 @@ from django.contrib.auth.models import User  # import django's model for the use
 from django.shortcuts import render, redirect
 
 from core.models import File, Script, Execution
-from .forms import NewUserForm, UploadFileForm  # import our own custom form
+from .forms import NewUserForm, UploadFileForm, ScriptForm  # import our own custom form
 
 
 # Create your views here.
@@ -119,8 +119,10 @@ def run_script(request):
     # TODO: Add a form and POST to select the file and algorithm to run
     # TODO: Download the resultant file
     # TODO: Add a dynamic form to select multiple compatible algorithms
+    form = None     # the form does not matter if there is no user logged in
     if request.user.is_authenticated:
         current_user = request.user     # get the logged in user
+        form = ScriptForm(user=current_user)  # populate the new form with user data
         data_files = File.objects.filter(user=current_user)     # get all files associated with the user
         scripts = Script.objects.all()     # get all scripts
 
@@ -137,6 +139,7 @@ def run_script(request):
         data_files = None
 
     context = {
+        'form': form,
         'current_user': current_user,
         'script': scripts,
         'data_files': data_files,

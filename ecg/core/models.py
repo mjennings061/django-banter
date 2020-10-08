@@ -61,7 +61,7 @@ class File(models.Model):
                                default=FileFormat.objects.values('name')[0])
 
     def __str__(self):
-        return self.name
+        return f"{self.user} - {self.name}"
 
 
 class Script(models.Model):
@@ -135,3 +135,6 @@ class Execution(models.Model):
     data_input = models.ForeignKey(File, on_delete=models.CASCADE, related_name='data_input', default=None)
     script = models.ForeignKey(Script, on_delete=models.CASCADE, related_name='script', default=None)
     data_output = models.ForeignKey(File, on_delete=models.CASCADE, related_name='data_output', null=True)
+
+    def __str__(self):
+        return f"{self.data_output}"
