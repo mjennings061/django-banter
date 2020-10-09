@@ -122,17 +122,19 @@ def run_script(request):
     form = None     # the form does not matter if there is no user logged in
     if request.user.is_authenticated:
         current_user = request.user     # get the logged in user
-        form = ScriptForm(user=current_user)  # populate the new form with user data
+        form = ScriptForm(request.POST, request.FILES, user=current_user)  # populate the new form with user data
         data_files = File.objects.filter(user=current_user)     # get all files associated with the user
         scripts = Script.objects.all()     # get all scripts
 
         if request.method == "POST":
-            execution = Execution()     # each execution of a script will have its own instance
-            execution.data_input = data_files.get(name='007b Trimmed Data')  # assign input and script to run
-            execution.script = Script.objects.get(identifier='mat.mj.addHalf')
-            file_id = execution.run_file()  # run the script
-            if file_id is not 0:    # if the script executed
-                execution.save()    # save the instance to the database
+            if form.is_valid():
+                execution = Execution(  # each execution of a script will have its own instance
+                    data_input=form.cleaned_data["file_select"],
+                )
+                execution.script = Script.objects.get(identifier='mat.mj.addHalf')
+                file_id = execution.run_file()  # run the script
+                if file_id is not 0:    # if the script executed
+                    execution.save()    # save the instance to the database
     else:
         current_user = None
         scripts = None

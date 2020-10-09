@@ -118,12 +118,12 @@ class Execution(models.Model):
             self.eng.quit()         # stop the MATLAB engine for this instance
             if file_id is not 0:    # if the script processed ok
                 # TODO: Move new file declaration into its own method
-                result_file = File()    # create an instance of File to store the result file in
-                result_file.name = f"result_{int(file_id)}"     # the file name is the same as the MATLAB output
-                result_file.user = self.data_input.user         # user is required to attach the files to
-                result_file.format = self.script.output_format  # format is derived from the script's default format
-                # point to the result file itself
-                result_file.uploaded_file = os.path.join(settings.MEDIA_ROOT, f"results/{int(file_id)}.csv")
+                result_file = File(     # create an instance of File to store the result file in
+                    name=f"result_{int(file_id)}",     # the file name is the same as the MATLAB output
+                    user=self.data_input.user,         # user is required to attach the files to
+                    format=self.script.output_format,  # format is derived from the script's default format
+                    uploaded_file=os.path.join(settings.MEDIA_ROOT, f"results/{int(file_id)}.csv"),
+                )
                 result_file.save()
                 self.data_output = result_file  # save all of result_file to data_output
         # TODO: Add a python run option

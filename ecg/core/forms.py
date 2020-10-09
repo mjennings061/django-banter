@@ -20,12 +20,6 @@ class NewUserForm(UserCreationForm):
         return user
 
 
-#
-class FileFormatChoiceField(forms.ModelChoiceField):
-    def label_from_instance(self, obj):
-        return obj.name
-
-
 class UploadFileForm(forms.ModelForm):
     class Meta:
         model = File
@@ -34,12 +28,10 @@ class UploadFileForm(forms.ModelForm):
 
 class ScriptForm(forms.Form):
     # all files associated with the user
-    file_select = forms.ModelChoiceField(
-        label="File",
-        queryset=File.objects.all()
-    )
+    file_select = forms.ModelChoiceField(label="File", queryset=File.objects.all())
+    script_select = forms.ModelChoiceField(label="Script", queryset=Script.objects.all())
 
     def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop('user', None)
-        super(ScriptForm, self).__init__(*args, **kwargs)
-        self.fields['file_select'].queryset = File.objects.filter(user=self.user)
+        self.user = kwargs.pop('user', None)    # get the current user
+        super(ScriptForm, self).__init__(*args, **kwargs)   # expands args into keyword arguments again
+        self.fields['file_select'].queryset = File.objects.filter(user=self.user)   # filter files for one user

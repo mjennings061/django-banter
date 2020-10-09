@@ -2,7 +2,7 @@
 
 {% block content %}
     {% if current_user.is_authenticated %}
-        <p>{{ current_user }}, select a file to process </p>
+        <p>Select a file to process </p>
         {# TODO: Add form to select file and compatible algorithms here #}
         <form method="POST">
             {% csrf_token %}
