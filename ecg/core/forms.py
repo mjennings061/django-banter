@@ -26,12 +26,19 @@ class UploadFileForm(forms.ModelForm):
         fields = ('name', 'uploaded_file', 'format')
 
 
-class ScriptForm(forms.Form):
-    # all files associated with the user
-    file_select = forms.ModelChoiceField(label="File", queryset=File.objects.all())
-    script_select = forms.ModelChoiceField(label="Script", queryset=Script.objects.all())
+class FileSelectForm(forms.Form):
+    file_select = forms.ModelChoiceField(label="File", queryset=File.objects.all())     # all user files
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)    # get the current user
-        super(ScriptForm, self).__init__(*args, **kwargs)   # expands args into keyword arguments again
+        super(FileSelectForm, self).__init__(*args, **kwargs)   # expands args into keyword arguments again
         self.fields['file_select'].queryset = File.objects.filter(user=self.user)   # filter files for one user
+
+
+class ScriptSelectForm(forms.Form):
+    script_select = forms.ModelChoiceField(label="Script", queryset=Script.objects.all())  # all scripts to process
+
+    def compatible_scripts(self, input_file_type, *args, **kwargs):
+        super(ScriptSelectForm, self).__init__()   # expands args into keyword arguments again
+        supported_scripts = Script.objects.filter(supported_input=input_file_type)  # get all matching scripts
+        self.fields['script_select'].queryset = supported_scripts   # populate the form with only supported scripts

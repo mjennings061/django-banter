@@ -114,10 +114,10 @@ class Execution(models.Model):
             self.eng.addpath(   # add the algorithms folder to the MATLAB path
                 r'C:\Users\MJ\OneDrive - Ulster University\Documents\PhD\Django\django-banter\ecg\media\algorithm',
                 nargout=0)
+            # TODO: change this to run the script specified in Execution.script
             file_id = self.eng.LPF_single_row(self.data_input.uploaded_file.path, nargout=1)  # run file through MATLAB
             self.eng.quit()         # stop the MATLAB engine for this instance
             if file_id is not 0:    # if the script processed ok
-                # TODO: Move new file declaration into its own method
                 result_file = File(     # create an instance of File to store the result file in
                     name=f"result_{int(file_id)}",     # the file name is the same as the MATLAB output
                     user=self.data_input.user,         # user is required to attach the files to

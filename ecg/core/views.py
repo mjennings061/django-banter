@@ -6,7 +6,7 @@ from django.contrib.auth.models import User  # import django's model for the use
 from django.shortcuts import render, redirect
 
 from core.models import File, Script, Execution
-from .forms import NewUserForm, UploadFileForm, ScriptForm  # import our own custom form
+from .forms import NewUserForm, UploadFileForm, FileSelectForm, ScriptSelectForm  # import our custom forms
 
 
 # Create your views here.
@@ -115,38 +115,37 @@ def download_result(file_id):
 
 
 def run_script(request):
-    # TODO: Render the available files and algorithms
-    # TODO: Add a form and POST to select the file and algorithm to run
-    # TODO: Download the resultant file
     # TODO: Add a dynamic form to select multiple compatible algorithms
-    form = None     # the form does not matter if there is no user logged in
+    # TODO: Download the resultant file
     if request.user.is_authenticated:
         current_user = request.user     # get the logged in user
-        form = ScriptForm(request.POST, request.FILES, user=current_user)  # populate the new form with user data
-        data_files = File.objects.filter(user=current_user)     # get all files associated with the user
-        scripts = Script.objects.all()     # get all scripts
-
         if request.method == "POST":
-            if form.is_valid():
-                execution = Execution(  # each execution of a script will have its own instance
-                    data_input=form.cleaned_data["file_select"],
-                )
-                execution.script = Script.objects.get(identifier='mat.mj.addHalf')
-                file_id = execution.run_file()  # run the script
-                if file_id is not 0:    # if the script executed
-                    execution.save()    # save the instance to the database
+            file_form = FileSelectForm(request.POST, user=current_user)  # fill new form with user data
+            if file_form.is_valid():    # if the data is valid
+                script_form = ScriptSelectForm(request.POST)    # create an instance of the script form
+                if script_form.is_valid():
+                    execution = Execution(  # each execution of a script will have its own instance
+                        data_input=file_form.cleaned_data["file_select"],
+                        script=file_form.cleaned_data["script_select"],
+                    )
+                    file_id = execution.run_file()  # run the script
+                    if file_id is not 0:    # if the script executed
+                        execution.save()    # save the instance to the database
+                else:
+                    in_file = file_form.cleaned_data["file_select"].format  # get the input file format
+                    script_form.compatible_scripts(  # filter only the supported scripts for that file format
+                        input_file_type=in_file
+                    )
+        elif request.method == "GET":
+            file_form = FileSelectForm(user=current_user)  # fill new form with user data
+            script_form = ScriptSelectForm()
+
     else:
         current_user = None
-        scripts = None
-        data_files = None
 
     context = {
-        'form': form,
+        'file_form': file_form,
+        'script_form': script_form,
         'current_user': current_user,
-        'script': scripts,
-        'data_files': data_files,
     }
     return render(request, 'run_script.html', context)
-
-# TODO: Design form to pick a file and algorithm to run
-# TODO: Write algorithm calling function

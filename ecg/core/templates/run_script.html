@@ -3,14 +3,22 @@
 {% block content %}
     {% if current_user.is_authenticated %}
         <p>Select a file to process </p>
-        {# TODO: Add form to select file and compatible algorithms here #}
         <form method="POST">
             {% csrf_token %}
-            {{ form.as_p }} {# build the form elsewhere #}
+            {{ file_form.as_p }} {# build the form elsewhere #}
             <button
                 class="btn waves-effect waves-light indigo darken-4"
                 type="submit" name="file select">
                 Select
+            </button>
+        </form>
+        <form method="POST">
+            {% csrf_token %}
+            {{ script_form.as_p }} {# build the form elsewhere #}
+            <button
+                class="btn waves-effect waves-light indigo darken-4"
+                type="submit" name="script select">
+                Process
             </button>
         </form>
     {% else %}
