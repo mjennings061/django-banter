@@ -40,5 +40,25 @@ class ScriptSelectForm(forms.Form):
 
     def compatible_scripts(self, input_file_type, *args, **kwargs):
         super(ScriptSelectForm, self).__init__()   # expands args into keyword arguments again
-        supported_scripts = Script.objects.filter(supported_input=input_file_type)  # get all matching scripts
+        supported_scripts = Script.objects.filter(data_input=input_file_type)  # get all matching scripts
         self.fields['script_select'].queryset = supported_scripts   # populate the form with only supported scripts
+
+
+class ExecutionSelectForm(forms.ModelForm):
+    class Meta:
+        model = Execution
+        fields = ('data_input', 'script')
+
+    # Arguments = ChainedModelChoiceField(app,model,to_field,modle_field,auto_select=False,show_all=False)
+    # script = ChainedModelChoiceField(
+    #     to_app_name='ecg',
+    #     to_model_name='Execution',
+    #     chained_model_field='data_input',
+    #     auto_choose=False,
+    #     show_all=False
+    # )
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)  # get the current user
+        super(ExecutionSelectForm, self).__init__(*args, **kwargs)  # expands args into keyword arguments again
+        self.fields['data_input'].queryset = File.objects.filter(user=self.user)  # filter files for one user

@@ -6,7 +6,7 @@ from django.contrib.auth.models import User  # import django's model for the use
 from django.shortcuts import render, redirect
 
 from core.models import File, Script, Execution
-from .forms import NewUserForm, UploadFileForm, FileSelectForm, ScriptSelectForm  # import our custom forms
+from .forms import NewUserForm, UploadFileForm, FileSelectForm, ScriptSelectForm, ExecutionSelectForm
 
 
 # Create your views here.
@@ -120,32 +120,16 @@ def run_script(request):
     if request.user.is_authenticated:
         current_user = request.user     # get the logged in user
         if request.method == "POST":
-            file_form = FileSelectForm(request.POST, user=current_user)  # fill new form with user data
-            if file_form.is_valid():    # if the data is valid
-                script_form = ScriptSelectForm(request.POST)    # create an instance of the script form
-                if script_form.is_valid():
-                    execution = Execution(  # each execution of a script will have its own instance
-                        data_input=file_form.cleaned_data["file_select"],
-                        script=file_form.cleaned_data["script_select"],
-                    )
-                    file_id = execution.run_file()  # run the script
-                    if file_id is not 0:    # if the script executed
-                        execution.save()    # save the instance to the database
-                else:
-                    in_file = file_form.cleaned_data["file_select"].format  # get the input file format
-                    script_form.compatible_scripts(  # filter only the supported scripts for that file format
-                        input_file_type=in_file
-                    )
+            execution_form = ExecutionSelectForm(request.POST, user=current_user)  # fill new form with user data
+            if execution_form.is_valid():    # if the data is valid
+                pass
         elif request.method == "GET":
-            file_form = FileSelectForm(user=current_user)  # fill new form with user data
-            script_form = ScriptSelectForm()
-
+            execution_form = ExecutionSelectForm(user=current_user)
     else:
         current_user = None
 
     context = {
-        'file_form': file_form,
-        'script_form': script_form,
+        'execution_form': execution_form,
         'current_user': current_user,
     }
     return render(request, 'run_script.html', context)
