@@ -16,3 +16,8 @@
         <p>You must be logged in to view this content.</p>
     {% endif %}
 {% endblock %}
+
+{% block javascript %}
+    {% load static %}
+    <script src="{% static 'run_script.js' %}"></script>
+{% endblock %}
