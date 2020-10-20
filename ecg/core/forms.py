@@ -38,27 +38,28 @@ class FileSelectForm(forms.Form):
 class ScriptSelectForm(forms.Form):
     script_select = forms.ModelChoiceField(label="Script", queryset=Script.objects.all())  # all scripts to process
 
-    def compatible_scripts(self, input_file_type, *args, **kwargs):
+    def compatible_scripts(self, input_file_ident, *args, **kwargs):
         super(ScriptSelectForm, self).__init__()   # expands args into keyword arguments again
-        supported_scripts = Script.objects.filter(data_input=input_file_type)  # get all matching scripts
+        file_type = File.objects.get(identifier=input_file_ident).format
+        supported_scripts = Script.objects.filter(data_input=file_type)  # get all matching scripts
         self.fields['script_select'].queryset = supported_scripts   # populate the form with only supported scripts
 
 
 class ExecutionSelectForm(forms.ModelForm):
+    data_input = forms.ModelChoiceField(queryset=File.objects.all())
+    script = forms.ModelChoiceField(queryset=Script.objects.none())
+
     class Meta:
         model = Execution
         fields = ('data_input', 'script')
-
-    # Arguments = ChainedModelChoiceField(app,model,to_field,modle_field,auto_select=False,show_all=False)
-    # script = ChainedModelChoiceField(
-    #     to_app_name='ecg',
-    #     to_model_name='Execution',
-    #     chained_model_field='data_input',
-    #     auto_choose=False,
-    #     show_all=False
-    # )
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)  # get the current user
         super(ExecutionSelectForm, self).__init__(*args, **kwargs)  # expands args into keyword arguments again
         self.fields['data_input'].queryset = File.objects.filter(user=self.user)  # filter files for one user
+
+    def compatible_scripts(self, input_file_ident, *args, **kwargs):
+        super(ExecutionSelectForm, self).__init__()  # expands args into keyword arguments again
+        file_type = File.objects.get(identifier=input_file_ident).format
+        supported_scripts = Script.objects.filter(data_input=file_type)  # get all matching scripts
+        self.fields['script'].queryset = supported_scripts  # populate the form with only supported scripts

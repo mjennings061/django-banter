@@ -10,4 +10,5 @@ urlpatterns = [
     path('account/', views.show_files, name='show_files'),
     path('run_script/', views.run_script, name='run_script'),
     path('download_result/<int:file_id>', views.download_result, name='download_result'),
+    path('run_script/get_scripts/<slug:data_input_id>/', views.get_scripts, name='get_scripts')
 ]

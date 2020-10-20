@@ -3,14 +3,40 @@
 {% block content %}
     {% if current_user.is_authenticated %}
         <p>Select a file to process </p>
+{#        <form method="POST">#}
+{#            <div class="input-field">#}
+{#                {% csrf_token %}#}
+{#                {{ execution_form.data_input }}#}
+{#                <button#}
+{#                    class="btn waves-effect waves-light indigo darken-4"#}
+{#                    type="submit" name="file_select">#}
+{#                    Select#}
+{#                </button>#}
+{#            </div>#}
+{#        </form>#}
+{#        <form method="POST">#}
+{#            <div class="input-field">#}
+{#                {% csrf_token %}#}
+{#                {{ execution_form.script }}#}
+{#                <button#}
+{#                    class="btn waves-effect waves-light indigo darken-4"#}
+{#                    type="submit" name="script_select">#}
+{#                    Process#}
+{#                </button>#}
+{#            </div>#}
+{#        </form>#}
+
         <form method="POST">
-            {% csrf_token %}
-            {{ execution_form.as_p }} {# build the form elsewhere #}
-            <button
-                class="btn waves-effect waves-light indigo darken-4"
-                type="submit" name="file select">
-                Select
-            </button>
+            <div class="input-field">
+                {% csrf_token %}
+                {{ execution_form.as_p }}
+                <button
+                    class="btn waves-effect waves-light indigo darken-4"
+                    type="submit"
+                    name="execution_select">
+                    Process
+                </button>
+            </div>
         </form>
     {% else %}
         <p>You must be logged in to view this content.</p>
@@ -18,6 +44,9 @@
 {% endblock %}
 
 {% block javascript %}
+
+{#    {{ execution_form.fields|json_script:"execution_form" }}#}
+    <div class="row">{{ execution_form.cleaned_data }}</div>
     {% load static %}
     <script src="{% static 'run_script.js' %}"></script>
 {% endblock %}

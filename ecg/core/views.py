@@ -4,6 +4,7 @@ from django.contrib.auth import login, logout as django_logout, authenticate  # 
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User  # import django's model for the user
 from django.shortcuts import render, redirect
+import json as simplejson   # for handling AJAX queries from forms
 
 from core.models import File, Script, Execution
 from .forms import NewUserForm, UploadFileForm, FileSelectForm, ScriptSelectForm, ExecutionSelectForm
@@ -120,16 +121,36 @@ def run_script(request):
     if request.user.is_authenticated:
         current_user = request.user     # get the logged in user
         if request.method == "POST":
-            execution_form = ExecutionSelectForm(request.POST, user=current_user)  # fill new form with user data
-            if execution_form.is_valid():    # if the data is valid
-                pass
+            execution_form = ExecutionSelectForm(request.POST)
+            if execution_form.is_valid():
+                print(execution_form.cleaned_data['data_input'].identifier)
+                print(execution_form.cleaned_data['script'])
+                execution = Execution(
+                    data_input=execution_form.cleaned_data['data_input'],
+                    script=execution_form.cleaned_data['script'],
+                )
+                execution.run_file()
+                # execution.save()
+
         elif request.method == "GET":
             execution_form = ExecutionSelectForm(user=current_user)
     else:
         current_user = None
 
     context = {
-        'execution_form': execution_form,
         'current_user': current_user,
+        'execution_form': execution_form,
     }
     return render(request, 'run_script.html', context)
+
+
+def get_scripts(request, data_input_id):
+    if request.user.is_authenticated:
+        data_input = File.objects.get(pk=data_input_id).format
+        scripts = Script.objects.filter(data_input=data_input)
+        script_dict = {}
+        for script in scripts:
+            script_dict[script.id] = script.identifier
+        return HttpResponse(simplejson.dumps(script_dict))
+    else:
+        HttpResponseForbidden()
