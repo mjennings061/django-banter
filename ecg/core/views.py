@@ -3,10 +3,11 @@ from django.contrib import messages  # alert the user
 from django.contrib.auth import login, logout as django_logout, authenticate  # user handling (register)
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User  # import django's model for the user
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 import json as simplejson   # for handling AJAX queries from forms
 
-from core.models import File, Script, Execution
+from .models import File, Script, Execution
 from .forms import NewUserForm, UploadFileForm, FileSelectForm, ScriptSelectForm, ExecutionSelectForm
 
 
@@ -67,8 +68,8 @@ def login_request(request):
                   {"form": form})
 
 
+@login_required
 def upload(request):
-    # UploadFileForm.base_fields['format'] = forms.ModelChoiceField(queryset=FileFormat.objects.values('name'))
     form = UploadFileForm()
     if request.method == "POST":
         user = User.objects.get(username=request.user.username)
@@ -92,12 +93,10 @@ def upload(request):
 
 
 # TODO Show only the file name, not the whole path (security)
+@login_required
 def show_files(request):
-    if request.user.is_authenticated:
-        current_user = request.user
-        files = File.objects.filter(user=current_user)
-    else:
-        current_user = None
+    current_user = request.user
+    files = File.objects.filter(user=current_user)
 
     context = {
         'current_user': current_user,
@@ -107,6 +106,7 @@ def show_files(request):
 
 
 # TODO complete download and delete to return the resultant file
+@login_required
 def download_result(file_id):
     # TODO: Check the file ID exists and return a 404 if not
     # TODO: Only let the user download their own results
@@ -115,6 +115,7 @@ def download_result(file_id):
     return response
 
 
+@login_required
 def run_script(request):
     # TODO: Add a dynamic form to select multiple compatible algorithms
     # TODO: Download the resultant file
@@ -135,7 +136,7 @@ def run_script(request):
         elif request.method == "GET":
             execution_form = ExecutionSelectForm(user=current_user)
     else:
-        current_user = None
+        HttpResponseForbidden()
 
     context = {
         'current_user': current_user,
@@ -144,13 +145,11 @@ def run_script(request):
     return render(request, 'run_script.html', context)
 
 
+@login_required
 def get_scripts(request, data_input_id):
-    if request.user.is_authenticated:
-        data_input = File.objects.get(pk=data_input_id).format
-        scripts = Script.objects.filter(data_input=data_input)
-        script_dict = {}
-        for script in scripts:
-            script_dict[script.id] = script.identifier
-        return HttpResponse(simplejson.dumps(script_dict))
-    else:
-        HttpResponseForbidden()
+    data_input = File.objects.get(pk=data_input_id).format
+    scripts = Script.objects.filter(data_input=data_input)
+    script_dict = {}
+    for script in scripts:
+        script_dict[script.id] = script.identifier
+    return HttpResponse(simplejson.dumps(script_dict))

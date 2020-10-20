@@ -8,3 +8,4 @@ ecg/venv/
 ecg/venv2/
 ecg/media/results/
 ecg/media/*.csv
+.idea/
