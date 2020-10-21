@@ -126,10 +126,12 @@ def run_script(request):
                 data_input=execution_form.cleaned_data['data_input'],
                 script=execution_form.cleaned_data['script'],
             )
-            messages.info(request, f"Processing")   # TODO: Add processing progress
-            execution.run_file()    # Execute the File using the Script selected to produce data_output
-            execution.save()        # save the execution instance as a database entry
-            messages.success(request, f"File processed successfully")
+            file_id = execution.run_file()    # Execute the File using the Script selected to produce data_output
+            if file_id is not None or 0:  # if the script processed ok
+                execution.save()        # save the execution instance as a database entry
+                messages.success(request, f"File processed successfully")
+            else:
+                messages.error(request, f"File could not be processed")
     elif request.method == "GET":
         execution_form = ExecutionSelectForm(user=current_user)     # create an empty form with user files listed
     else:

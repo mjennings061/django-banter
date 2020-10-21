@@ -50,8 +50,13 @@ class File(models.Model):
     """
     def content_filename(instance, filename):   # dynamic filename changing for the uploaded file when saving
         ext = filename.split('.')[-1]   # get file extension
-        filename = "%s_%s.%s" % (instance.user, instance.id, ext)   # filename is username_id.ext e.g mj_45ds.jpeg
+        # filename is username_id.ext e.g mj_45ds.m
+        filename = "user_data/%s_%s.%s" % (instance.user, instance.identifier, ext)
         return os.path.join(settings.MEDIA_ROOT, filename)  # return filepath for storage
+
+    @property
+    def get_filename(self):
+        return os.path.basename(self.uploaded_file.name)
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)    # link to the user uploading the file
     identifier = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)  # unique ID for the file
@@ -111,13 +116,11 @@ class Execution(models.Model):
     def run_file(self):
         if self.script.language == "M":     # if the script is a MATLAB file
             self.eng = matlab.engine.connect_matlab()  # connect to an open MATLAB window open at ecg\media
-            self.eng.addpath(   # add the algorithms folder to the MATLAB path
-                r'C:\Users\MJ\OneDrive - Ulster University\Documents\PhD\Django\django-banter\ecg\media\algorithm',
-                nargout=0)
-            # TODO: change this to run the script specified in Execution.script
-            file_id = self.eng.LPF_single_row(self.data_input.uploaded_file.path, nargout=1)  # run file through MATLAB
+            data_file_path = self.data_input.uploaded_file.path     # get the datafile path from the model
+            script_file_path = self.script.uploaded_script.path     # get the script file path from the model
+            file_id = self.eng.handler(script_file_path, data_file_path)    # execute the file by passing thru handler
             self.eng.quit()         # stop the MATLAB engine for this instance
-            if file_id is not 0:    # if the script processed ok
+            if file_id is not None or 0:    # if the script processed ok
                 result_file = File(     # create an instance of File to store the result file in
                     name=f"result_{int(file_id)}",      # the file name is the same as the MATLAB output
                     user=self.data_input.user,          # user is required to attach the files to
