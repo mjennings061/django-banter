@@ -1,4 +1,4 @@
-from django.http import HttpResponse, HttpResponseForbidden, HttpResponseRedirect
+from django.http import HttpResponse, Http404
 from django.contrib import messages  # alert the user
 from django.contrib.auth import login, logout as django_logout, authenticate  # user handling (register)
 from django.contrib.auth.forms import AuthenticationForm
@@ -8,7 +8,7 @@ from django.shortcuts import render, redirect
 import json as simplejson   # for handling AJAX queries from forms
 
 from .models import File, Script, Execution
-from .forms import NewUserForm, UploadFileForm, FileSelectForm, ScriptSelectForm, ExecutionSelectForm
+from .forms import NewUserForm, UploadFileForm, ExecutionSelectForm
 
 
 # Create your views here.
@@ -117,26 +117,23 @@ def download_result(file_id):
 
 @login_required
 def run_script(request):
-    # TODO: Add a dynamic form to select multiple compatible algorithms
     # TODO: Download the resultant file
-    if request.user.is_authenticated:
-        current_user = request.user     # get the logged in user
-        if request.method == "POST":
-            execution_form = ExecutionSelectForm(request.POST)
-            if execution_form.is_valid():
-                print(execution_form.cleaned_data['data_input'].identifier)
-                print(execution_form.cleaned_data['script'])
-                execution = Execution(
-                    data_input=execution_form.cleaned_data['data_input'],
-                    script=execution_form.cleaned_data['script'],
-                )
-                execution.run_file()
-                # execution.save()
-
-        elif request.method == "GET":
-            execution_form = ExecutionSelectForm(user=current_user)
+    current_user = request.user     # get the logged in user
+    if request.method == "POST":    # if data is posted
+        execution_form = ExecutionSelectForm(request.POST, user=current_user)   # submit POST data to ModelForm
+        if execution_form.is_valid():   # if the form is valid
+            execution = Execution(      # submit ModelForm fields to Model
+                data_input=execution_form.cleaned_data['data_input'],
+                script=execution_form.cleaned_data['script'],
+            )
+            messages.info(request, f"Processing")   # TODO: Add processing progress
+            execution.run_file()    # Execute the File using the Script selected to produce data_output
+            execution.save()        # save the execution instance as a database entry
+            messages.success(request, f"File processed successfully")
+    elif request.method == "GET":
+        execution_form = ExecutionSelectForm(user=current_user)     # create an empty form with user files listed
     else:
-        HttpResponseForbidden()
+        raise Http404("Unknown request")
 
     context = {
         'current_user': current_user,
@@ -145,11 +142,12 @@ def run_script(request):
     return render(request, 'run_script.html', context)
 
 
+# Get all scripts compatible with the input file UUID
 @login_required
 def get_scripts(request, data_input_id):
-    data_input = File.objects.get(pk=data_input_id).format
-    scripts = Script.objects.filter(data_input=data_input)
+    data_input = File.objects.get(pk=data_input_id).format  # get the file format of the input file
+    scripts = Script.objects.filter(data_input=data_input)  # get the scripts with compatible inputs matching data_input
     script_dict = {}
-    for script in scripts:
+    for script in scripts:  # form a dictionary with script IDs to fill the select form
         script_dict[script.id] = script.identifier
-    return HttpResponse(simplejson.dumps(script_dict))
+    return HttpResponse(simplejson.dumps(script_dict))  # return a JSON file with compatible scripts

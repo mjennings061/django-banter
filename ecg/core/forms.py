@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm  # import Django's form to register
 from django.contrib.auth.models import User     # import django's model for the user
-from core.models import File, FileFormat, Script, Execution    # created file form
+from .models import File, Script, Execution    # created file form
 
 
 # Form to register as a new user
@@ -26,40 +26,15 @@ class UploadFileForm(forms.ModelForm):
         fields = ('name', 'uploaded_file', 'format')
 
 
-class FileSelectForm(forms.Form):
-    file_select = forms.ModelChoiceField(label="File", queryset=File.objects.all())     # all user files
-
-    def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop('user', None)    # get the current user
-        super(FileSelectForm, self).__init__(*args, **kwargs)   # expands args into keyword arguments again
-        self.fields['file_select'].queryset = File.objects.filter(user=self.user)   # filter files for one user
-
-
-class ScriptSelectForm(forms.Form):
-    script_select = forms.ModelChoiceField(label="Script", queryset=Script.objects.all())  # all scripts to process
-
-    def compatible_scripts(self, input_file_ident, *args, **kwargs):
-        super(ScriptSelectForm, self).__init__()   # expands args into keyword arguments again
-        file_type = File.objects.get(identifier=input_file_ident).format
-        supported_scripts = Script.objects.filter(data_input=file_type)  # get all matching scripts
-        self.fields['script_select'].queryset = supported_scripts   # populate the form with only supported scripts
-
-
 class ExecutionSelectForm(forms.ModelForm):
-    data_input = forms.ModelChoiceField(queryset=File.objects.all())
-    script = forms.ModelChoiceField(queryset=Script.objects.none())
+    data_input = forms.ModelChoiceField(queryset=File.objects.all(), required=True)
+    script = forms.ModelChoiceField(queryset=Script.objects.all(), required=True)
 
     class Meta:
         model = Execution
-        fields = ('data_input', 'script')
+        fields = ('data_input', 'script')   # form fields
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)  # get the current user
         super(ExecutionSelectForm, self).__init__(*args, **kwargs)  # expands args into keyword arguments again
         self.fields['data_input'].queryset = File.objects.filter(user=self.user)  # filter files for one user
-
-    def compatible_scripts(self, input_file_ident, *args, **kwargs):
-        super(ExecutionSelectForm, self).__init__()  # expands args into keyword arguments again
-        file_type = File.objects.get(identifier=input_file_ident).format
-        supported_scripts = Script.objects.filter(data_input=file_type)  # get all matching scripts
-        self.fields['script'].queryset = supported_scripts  # populate the form with only supported scripts
