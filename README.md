@@ -8,18 +8,21 @@ Core project is named 'ecg'. There is a single app called 'core'. The base HTML 
 ecg
 |   db.sqlite3
 |   manage.py
+|   tree.txt
 |           
 +---core
 |   |   admin.py
 |   |   apps.py
 |   |   forms.py
-|   |   mlab.py
 |   |   models.py
 |   |   tests.py
 |   |   urls.py
 |   |   views.py
 |   |   __init__.py
 |   |   
+|   +---migrations
+|   |   |   0001_initial.py
+|   |   |   __init__.py
 |   |           
 |   +---templates
 |   |       file_upload.html
@@ -28,7 +31,7 @@ ecg
 |   |       messages.html
 |   |       navbar.html
 |   |       register.html
-|   |       run.html
+|   |       run_script.html
 |   |       show_files.html
 |   |       
 |           
@@ -38,29 +41,31 @@ ecg
 |   |   urls.py
 |   |   wsgi.py
 |   |   __init__.py
-|   |   
 |           
 +---media
-|   |   mj_6c493203-13fa-482f-a815-5821a9ed29c3.csv
-|   |   SillyBilly_65a545a2-93d1-4811-b765-32b08bc27c4e.csv
-|   |   SillyBilly_6ea0357d-0289-4f6a-8f73-0daae04980eb.csv
-|   |   SillyBilly_761a838c-b711-48f0-984e-a50ae4a80e57.csv
-|   |   SillyBilly_8989c5a7-ad88-4b35-8712-f0df8a0e1a2b.csv
-|   |   SillyBilly_f823d1ff-7f8b-4443-b22c-10211a63dac6.csv
-|   |   
 |   +---algorithm
-|   |       LPF_single_row.asv
-|   |       LPF_single_row.m
+|   |       add_half_M3r8RWx.m
+|   |       extract_12leads.m
+|   |       handler.asv
+|   |       handler.m
+|   |       take_half_ws3u8BZ.m
 |   |       
-|   \---results
-|           LPF_single_row_result.csv
+|   +---results
+|   \---user_data
+|           mj_0890794f-23c3-46f6-bcf9-b5bede7534fc.mat
+|           mj_a5259203-4ed5-476a-9381-4aab932bf9cf.mat
+|           mj_d59fca4d-c076-4fe3-bd1b-cacfdb1c7b5f.csv
 |           
 +---static
+|   |   base.js
+|   |   run_script.js
+|   |   
 |   +---core
 |   \---css
 |           materialize.css
 |           
 +---templates
         base.html
+       
         
 ```
