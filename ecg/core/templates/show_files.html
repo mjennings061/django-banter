@@ -20,7 +20,8 @@
                     <tr>
                         <td>{{ file.name }}</td>
                         <td>{{ file.format }}</td>
-                        <td>{{ file.uploaded_file }}</td>
+                        {% load filename %} {# Get filename #}
+                        <td>{{ file.uploaded_file | getfilename }}</td>
                     </tr>
                 {% endfor %}
             </tbody>
