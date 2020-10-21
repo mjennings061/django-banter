@@ -3,9 +3,7 @@ from django.contrib.auth.models import User     # import django's model for the 
 import uuid     # used for unique ID generation
 import os   # used for filename changes
 from django.conf import settings
-
-# TODO change models to include algorithm FileField
-# TODO add handler fields for algorithm output
+import matlab.engine
 
 
 class FileFormat(models.Model):
@@ -52,37 +50,42 @@ class File(models.Model):
     """
     def content_filename(instance, filename):   # dynamic filename changing for the uploaded file when saving
         ext = filename.split('.')[-1]   # get file extension
-        filename = "%s_%s.%s" % (instance.user, instance.id, ext)   # filename is username_id.ext e.g mj_45ds.jpeg
+        # filename is username_id.ext e.g mj_45ds.m
+        filename = "user_data/%s_%s.%s" % (instance.user, instance.identifier, ext)
         return os.path.join(settings.MEDIA_ROOT, filename)  # return filepath for storage
 
+    @property
+    def get_filename(self):
+        return os.path.basename(self.uploaded_file.name)
+
     user = models.ForeignKey(User, on_delete=models.CASCADE)    # link to the user uploading the file
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)  # unique ID for the file
+    identifier = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)  # unique ID for the file
     name = models.CharField(max_length=100, default=' ')    # user-given name for the file
     uploaded_file = models.FileField(upload_to=content_filename, null=True, max_length=200)     # the file itself
     format = models.ForeignKey(FileFormat, on_delete=models.CASCADE, related_name='formats',
                                default=FileFormat.objects.values('name')[0])
 
     def __str__(self):
-        return f"{self.user}_{self.id}"
+        return f"{self.user} - {self.name}"
 
 
-class Algorithm(models.Model):
+class Script(models.Model):
     """Admin-uploaded algorithms
 
     identifier          Descriptive ID of the algorithm and owner e.g. 'mat.mj.lowpass_filter'
     description         User description
     language            Programming language used e.g. 'MATLAB'
-    supported_input     Supported file inputs. Linked to FileFormat
-    output_format       Output format from the algorithm. Linked to FileFormat
+    data_input          Supported file inputs. Linked to FileFormat
+    data_output         Output format from the algorithm. Linked to FileFormat
+    uploaded_script     The script file itself
 
     """
-    def algorithm_path(instance, filename):   # dynamic filename changing for the uploaded file when saving
+    def script_path(instance, filename):   # dynamic filename changing for the uploaded file when saving
         filename_output = "algorithm/%s" % filename   # filename is username_id.ext e.g mj_45ds.jpeg
         return os.path.join(settings.MEDIA_ROOT, filename_output)  # return filepath for storage
 
     MATLAB = "M"
     PYTHON = "P"
-
     LANGUAGE_CHOICES = (
         (MATLAB, "MATLAB Function"),
         (PYTHON, "Python Function"),
@@ -91,28 +94,50 @@ class Algorithm(models.Model):
     identifier = models.CharField(max_length=250)
     description = models.TextField()
     language = models.CharField(max_length=1, choices=LANGUAGE_CHOICES, default=MATLAB)
-    supported_input = models.ForeignKey(FileFormat, on_delete=models.CASCADE, related_name='supported_inputs',
-                                        default=FileFormat.objects.values('name')[0])
-    output_format = models.ForeignKey(FileFormat, on_delete=models.CASCADE, related_name='output_formats',
-                                      default=FileFormat.objects.values('name')[0])
-    uploaded_algorithm = models.FileField(upload_to=algorithm_path, null=True, max_length=200)  # the file itself
+    data_input = models.ForeignKey(FileFormat, on_delete=models.CASCADE, related_name='script_inputs',
+                                    default=FileFormat.objects.values('name')[0])
+    data_output = models.ForeignKey(FileFormat, on_delete=models.CASCADE, related_name='script_outputs',
+                                    default=FileFormat.objects.values('name')[0])
+    uploaded_script = models.FileField(upload_to=script_path, null=True, max_length=200)  # the file itself
 
     def __str__(self):
         return self.identifier
 
 
-# TODO design the handler to pass files to fitting functions
-# class Handler(models.Model):
-#     """Handles the output of one process to the input of another
-#
-#     identifier      A unique identifier for the handler, also the name of the executable plugin
-#     description     Detailed explanation of the handler
-#     input_type      Input file type for the chosen algorithm
-#
-#     """
-#
-#     identifier = models.CharField(max_length=250)
-#     description = models.TextField()
-#     input_type = models.ForeignKey(FileFormat, on_delete=models.CASCADE, related_name='output_formats',
-#                                    default=FileFormat.objects.values('name'))
-#     output_type
+class Execution(models.Model):
+    """File-Script-Result pair for executing scripts
+
+    identifier      Unique ID of the instance
+    data_input      The file to be processed
+    script          The executable file to process the file
+    data_output     The result of executing data_file
+
+    """
+    def run_file(self):
+        if self.script.language == "M":     # if the script is a MATLAB file
+            self.eng = matlab.engine.connect_matlab()  # connect to an open MATLAB window open at ecg\media
+            data_file_path = self.data_input.uploaded_file.path     # get the datafile path from the model
+            script_file_path = self.script.uploaded_script.path     # get the script file path from the model
+            file_id = self.eng.handler(script_file_path, data_file_path)    # execute the file by passing thru handler
+            self.eng.quit()         # stop the MATLAB engine for this instance
+            if file_id is not None or 0:    # if the script processed ok
+                result_file = File(     # create an instance of File to store the result file in
+                    name=f"result_{int(file_id)}",      # the file name is the same as the MATLAB output
+                    user=self.data_input.user,          # user is required to attach the files to
+                    format=self.script.data_output,     # format is derived from the script's default format
+                    uploaded_file=os.path.join(settings.MEDIA_ROOT, f"results/{int(file_id)}.csv"),
+                )
+                result_file.save()
+                self.data_output = result_file  # save all of result_file to data_output
+        # TODO: Add a python run option
+        if self.script.language == "P":
+            file_id = 0
+        return file_id
+
+    identifier = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)  # unique ID for the file
+    data_input = models.ForeignKey(File, on_delete=models.CASCADE, related_name='execution_inputs', default=None)
+    script = models.ForeignKey(Script, on_delete=models.CASCADE, related_name='execution_scripts', default=None)
+    data_output = models.ForeignKey(File, on_delete=models.CASCADE, related_name='execution_outputs', null=True)
+
+    def __str__(self):
+        return f"{self.data_output}"

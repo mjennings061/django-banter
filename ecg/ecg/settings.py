@@ -65,6 +65,9 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
+            'libraries':{
+                'filename': 'templatetags.filename',
+            }
         },
     },
 ]
@@ -129,3 +132,6 @@ THUMBNAIL_HIGH_RESOLUTION = True    # easy_thumbnail for MACOS
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = 'media/'
+
+LOGIN_URL = 'login'     # @login_required will redirect to here
+LOGIN_REDIRECT_URL = 'account'

@@ -1,12 +1,14 @@
+from django.http import HttpResponse, Http404
 from django.contrib import messages  # alert the user
 from django.contrib.auth import login, logout as django_logout, authenticate  # user handling (register)
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User  # import django's model for the user
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
+import json as simplejson   # for handling AJAX queries from forms
 
-from core.models import File, Algorithm
-from core.mlab import run_file
-from .forms import NewUserForm, UploadFileForm  # import our own custom form
+from .models import File, Script, Execution
+from .forms import NewUserForm, UploadFileForm, ExecutionSelectForm
 
 
 # Create your views here.
@@ -66,8 +68,8 @@ def login_request(request):
                   {"form": form})
 
 
+@login_required
 def upload(request):
-    # UploadFileForm.base_fields['format'] = forms.ModelChoiceField(queryset=FileFormat.objects.values('name'))
     form = UploadFileForm()
     if request.method == "POST":
         user = User.objects.get(username=request.user.username)
@@ -91,12 +93,10 @@ def upload(request):
 
 
 # TODO Show only the file name, not the whole path (security)
+@login_required
 def show_files(request):
-    if request.user.is_authenticated:
-        current_user = request.user
-        files = File.objects.filter(user=current_user)
-    else:
-        current_user = None
+    current_user = request.user
+    files = File.objects.filter(user=current_user)
 
     context = {
         'current_user': current_user,
@@ -105,21 +105,51 @@ def show_files(request):
     return render(request, 'show_files.html', context)
 
 
-# TODO: Run a single MATLAB script
-def run(request):
-    if request.user.is_authenticated:
-        current_user = request.user
-        data_files = File.objects.filter(user=current_user)
-        file_path = 'C:/Users/MJ/OneDrive - Ulster University/Documents/PhD/Django/django-banter/ecg/media' \
-                    '/mj_6c493203-13fa-482f-a815-5821a9ed29c3.csv'
-        run_file(file_path)
+# TODO complete download and delete to return the resultant file
+@login_required
+def download_result(file_id):
+    # TODO: Check the file ID exists and return a 404 if not
+    # TODO: Only let the user download their own results
+    response = HttpResponse(content_type='text/csv')    # TODO change to MIME type from File
+    response['Content-Disposition'] = f"attachment; filename='{file_id}.csv'"
+    return response
+
+
+@login_required
+def run_script(request):
+    # TODO: Download the resultant file
+    current_user = request.user     # get the logged in user
+    if request.method == "POST":    # if data is posted
+        execution_form = ExecutionSelectForm(request.POST, user=current_user)   # submit POST data to ModelForm
+        if execution_form.is_valid():   # if the form is valid
+            execution = Execution(      # submit ModelForm fields to Model
+                data_input=execution_form.cleaned_data['data_input'],
+                script=execution_form.cleaned_data['script'],
+            )
+            file_id = execution.run_file()    # Execute the File using the Script selected to produce data_output
+            if file_id is not None or 0:  # if the script processed ok
+                execution.save()        # save the execution instance as a database entry
+                messages.success(request, f"File processed successfully")
+            else:
+                messages.error(request, f"File could not be processed")
+    elif request.method == "GET":
+        execution_form = ExecutionSelectForm(user=current_user)     # create an empty form with user files listed
+    else:
+        raise Http404("Unknown request")
 
     context = {
         'current_user': current_user,
-        'algorithms': Algorithm.objects.all(),
-        'data_files': data_files,
+        'execution_form': execution_form,
     }
-    return render(request, 'run.html', context)
+    return render(request, 'run_script.html', context)
 
-# TODO: Design form to pick a file and algorithm to  run
-# TODO: Write algorithm calling function
+
+# Get all scripts compatible with the input file UUID
+@login_required
+def get_scripts(request, data_input_id):
+    data_input = File.objects.get(pk=data_input_id).format  # get the file format of the input file
+    scripts = Script.objects.filter(data_input=data_input)  # get the scripts with compatible inputs matching data_input
+    script_dict = {}
+    for script in scripts:  # form a dictionary with script IDs to fill the select form
+        script_dict[script.id] = script.identifier
+    return HttpResponse(simplejson.dumps(script_dict))  # return a JSON file with compatible scripts
