@@ -54,10 +54,6 @@ class File(models.Model):
         filename = "user_data/%s_%s.%s" % (instance.user, instance.identifier, ext)
         return os.path.join(settings.MEDIA_ROOT, filename)  # return filepath for storage
 
-    @property
-    def get_filename(self):
-        return os.path.basename(self.uploaded_file.name)
-
     user = models.ForeignKey(User, on_delete=models.CASCADE)    # link to the user uploading the file
     identifier = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)  # unique ID for the file
     name = models.CharField(max_length=100, default=' ')    # user-given name for the file
@@ -104,6 +100,26 @@ class Script(models.Model):
         return self.identifier
 
 
+class Algorithm(models.Model):
+    """Executing an input file from a chain of scripts
+
+    identifier      Unique ID of the instance
+    name            User-defined name for their algorithm
+    description     User-defined description
+    scripts         The chain of executable files to run
+
+    """
+    def run_algorithm(self):
+        pass
+
+    identifier = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)  # unique ID for the instance
+    name = models.CharField(max_length=100)
+    description = models.TextField()
+
+    def __str__(self):
+        return f"{self.name}"
+
+
 class Execution(models.Model):
     """File-Script-Result pair for executing scripts
 
@@ -134,10 +150,11 @@ class Execution(models.Model):
             file_id = 0
         return file_id
 
-    identifier = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)  # unique ID for the file
+    identifier = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     data_input = models.ForeignKey(File, on_delete=models.CASCADE, related_name='execution_inputs', default=None)
     script = models.ForeignKey(Script, on_delete=models.CASCADE, related_name='execution_scripts', default=None)
     data_output = models.ForeignKey(File, on_delete=models.CASCADE, related_name='execution_outputs', null=True)
+    algorithm = models.ForeignKey(Algorithm, on_delete=models.CASCADE, related_name='executions', default=None)
 
     def __str__(self):
         return f"{self.data_output}"
