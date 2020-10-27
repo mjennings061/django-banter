@@ -1,4 +1,4 @@
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.contrib import messages  # alert the user
 from django.contrib.auth import login, logout as django_logout, authenticate  # user handling (register)
 from django.contrib.auth.forms import AuthenticationForm
@@ -6,6 +6,7 @@ from django.contrib.auth.models import User  # import django's model for the use
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 import json as simplejson   # for handling AJAX queries from forms
+from django.urls import reverse
 
 from .models import File, Script, Execution, Algorithm
 from .forms import NewUserForm, UploadFileForm, ExecutionSelectForm, AlgorithmForm
@@ -166,6 +167,7 @@ def create_algorithm(request):
             )
             algorithm.save()
             messages.info(request, f"Created algorithm")
+            return HttpResponseRedirect(reverse('algorithm_builder'))
         else:
             messages.error(request, f"Could not create algorithm")
     else:
@@ -175,3 +177,14 @@ def create_algorithm(request):
         'algorithm_form': algorithm_form,
     }
     return render(request, 'create_algorithm.html', context)
+
+
+@login_required
+def algorithm_builder(request):
+    context = None
+    return render(request, 'algorithm_builder.html', context)
+
+
+@login_required()
+def run_algorithm(request):
+    pass
