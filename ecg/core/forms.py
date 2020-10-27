@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm  # import Django's form to register
 from django.contrib.auth.models import User     # import django's model for the user
-from .models import File, Script, Execution    # created file form
+from .models import File, Script, Execution, Algorithm    # created file form
 
 
 # Form to register as a new user
@@ -38,3 +38,9 @@ class ExecutionSelectForm(forms.ModelForm):
         self.user = kwargs.pop('user', None)  # get the current user
         super(ExecutionSelectForm, self).__init__(*args, **kwargs)  # expands args into keyword arguments again
         self.fields['data_input'].queryset = File.objects.filter(user=self.user)  # filter files for one user
+
+
+class AlgorithmForm(forms.ModelForm):
+    class Meta:
+        model = Algorithm
+        fields = ('name', 'description')

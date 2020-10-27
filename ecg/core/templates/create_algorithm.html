@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <p>Name your algorithm</p>
+    <form action={% url 'create_algorithm' %} method="POST">
+        <div class="input-field">
+            {% csrf_token %}
+            {{ algorithm_form.as_p }}
+            <button
+                class="btn waves-effect waves-light indigo darken-4"
+                type="submit"
+                name="execution_select">
+                Process
+            </button>
+        </div>
+    </form>
+{% endblock %}

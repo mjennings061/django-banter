@@ -91,7 +91,7 @@ class Script(models.Model):
     description = models.TextField()
     language = models.CharField(max_length=1, choices=LANGUAGE_CHOICES, default=MATLAB)
     data_input = models.ForeignKey(FileFormat, on_delete=models.CASCADE, related_name='script_inputs',
-                                    default=FileFormat.objects.values('name')[0])
+                                   default=FileFormat.objects.values('name')[0])
     data_output = models.ForeignKey(FileFormat, on_delete=models.CASCADE, related_name='script_outputs',
                                     default=FileFormat.objects.values('name')[0])
     uploaded_script = models.FileField(upload_to=script_path, null=True, max_length=200)  # the file itself
@@ -113,6 +113,7 @@ class Algorithm(models.Model):
         pass
 
     identifier = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)  # unique ID for the instance
+    user = models.ForeignKey(User, on_delete=models.CASCADE)  # link to the user creating it
     name = models.CharField(max_length=100)
     description = models.TextField()
 

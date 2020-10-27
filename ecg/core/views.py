@@ -7,8 +7,8 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 import json as simplejson   # for handling AJAX queries from forms
 
-from .models import File, Script, Execution
-from .forms import NewUserForm, UploadFileForm, ExecutionSelectForm
+from .models import File, Script, Execution, Algorithm
+from .forms import NewUserForm, UploadFileForm, ExecutionSelectForm, AlgorithmForm
 
 
 # Create your views here.
@@ -92,7 +92,6 @@ def upload(request):
     return render(request, 'file_upload.html', context)
 
 
-# TODO Show only the file name, not the whole path (security)
 @login_required
 def show_files(request):
     current_user = request.user
@@ -117,7 +116,6 @@ def download_result(file_id):
 
 @login_required
 def run_script(request):
-    # TODO: Download the resultant file
     current_user = request.user     # get the logged in user
     if request.method == "POST":    # if data is posted
         execution_form = ExecutionSelectForm(request.POST, user=current_user)   # submit POST data to ModelForm
@@ -153,3 +151,27 @@ def get_scripts(request, data_input_id):
     for script in scripts:  # form a dictionary with script IDs to fill the select form
         script_dict[script.id] = script.identifier
     return HttpResponse(simplejson.dumps(script_dict))  # return a JSON file with compatible scripts
+
+
+@login_required
+def create_algorithm(request):
+    current_user = request.user
+    if request.method == "POST":  # if data is posted
+        algorithm_form = AlgorithmForm(request.POST)  # submit POST data to ModelForm
+        if algorithm_form.is_valid():
+            algorithm = Algorithm(
+                name=algorithm_form.cleaned_data['name'],
+                description=algorithm_form.cleaned_data['description'],
+                user=current_user,
+            )
+            algorithm.save()
+            messages.info(request, f"Created algorithm")
+        else:
+            messages.error(request, f"Could not create algorithm")
+    else:
+        algorithm_form = AlgorithmForm()
+
+    context = {
+        'algorithm_form': algorithm_form,
+    }
+    return render(request, 'create_algorithm.html', context)
