@@ -104,6 +104,7 @@ class Algorithm(models.Model):
     """Executing an input file from a chain of scripts
 
     identifier      Unique ID of the instance
+    user            The user executing the algorithm
     name            User-defined name for their algorithm
     description     User-defined description
     scripts         The chain of executable files to run
@@ -116,6 +117,7 @@ class Algorithm(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)  # link to the user creating it
     name = models.CharField(max_length=100)
     description = models.TextField()
+    scripts = models.ManyToManyField(Script, through='Execution')
 
     def __str__(self):
         return f"{self.name}"
@@ -128,6 +130,7 @@ class Execution(models.Model):
     data_input      The file to be processed
     script          The executable file to process the file
     data_output     The result of executing data_file
+    order           The order in which this will run
 
     """
     def run_file(self):
@@ -152,10 +155,14 @@ class Execution(models.Model):
         return file_id
 
     identifier = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    data_input = models.ForeignKey(File, on_delete=models.CASCADE, related_name='execution_inputs', default=None)
+    # data_input = models.ForeignKey(File, on_delete=models.CASCADE, related_name='execution_inputs', default=None)
+    # data_output = models.ForeignKey(File, on_delete=models.CASCADE, related_name='execution_outputs', null=True)
     script = models.ForeignKey(Script, on_delete=models.CASCADE, related_name='execution_scripts', default=None)
-    data_output = models.ForeignKey(File, on_delete=models.CASCADE, related_name='execution_outputs', null=True)
-    algorithm = models.ForeignKey(Algorithm, on_delete=models.CASCADE, related_name='executions', default=None)
+    algorithm = models.ForeignKey(Algorithm, on_delete=models.CASCADE, related_name='execution_algorithm', default=None)
+    order = models.IntegerField(default=0)
+
+    class Meta:
+        ordering = ['order']
 
     def __str__(self):
         return f"{self.data_output}"

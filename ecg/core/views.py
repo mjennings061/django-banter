@@ -154,11 +154,12 @@ def get_scripts(request, data_input_id):
     return HttpResponse(simplejson.dumps(script_dict))  # return a JSON file with compatible scripts
 
 
+# Create an algorithm instance before linking Executions to it
 @login_required
 def create_algorithm(request):
     current_user = request.user
     if request.method == "POST":  # if data is posted
-        algorithm_form = AlgorithmForm(request.POST)  # submit POST data to ModelForm
+        algorithm_form = AlgorithmForm(request.POST, user=current_user)  # submit POST data to ModelForm
         if algorithm_form.is_valid():
             algorithm = Algorithm(
                 name=algorithm_form.cleaned_data['name'],
@@ -171,20 +172,9 @@ def create_algorithm(request):
         else:
             messages.error(request, f"Could not create algorithm")
     else:
-        algorithm_form = AlgorithmForm()
+        algorithm_form = AlgorithmForm(user=current_user)
 
     context = {
         'algorithm_form': algorithm_form,
     }
     return render(request, 'create_algorithm.html', context)
-
-
-@login_required
-def algorithm_builder(request):
-    context = None
-    return render(request, 'algorithm_builder.html', context)
-
-
-@login_required()
-def run_algorithm(request):
-    pass

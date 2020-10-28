@@ -40,7 +40,15 @@ class ExecutionSelectForm(forms.ModelForm):
         self.fields['data_input'].queryset = File.objects.filter(user=self.user)  # filter files for one user
 
 
-class AlgorithmForm(forms.ModelForm):
-    class Meta:
-        model = Algorithm
-        fields = ('name', 'description')
+class AlgorithmForm(forms.Form):
+    name = forms.CharField(max_length=255, required=True)
+    description = forms.CharField(widget=forms.Textarea)
+    data_input = forms.ModelChoiceField(queryset=File.objects.all())
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)  # get the current user
+        super(AlgorithmForm, self).__init__(*args, **kwargs)
+        self.fields['data_input'].queryset = File.objects.filter(user=self.user)  # filter files for one user
+        for i in range(0, 4):
+            self.fields[f'script[{i}]'] = forms.ModelChoiceField(queryset=Script.objects.all(),
+                                                                 label=f'Script to run: No.{i+1}')
