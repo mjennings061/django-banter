@@ -155,7 +155,7 @@ class Execution(models.Model):
         return file_id
 
     identifier = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    data_input = models.ForeignKey(File, on_delete=models.CASCADE, related_name='execution_inputs', default=None)
+    data_input = models.ForeignKey(File, on_delete=models.CASCADE, related_name='execution_inputs', null=True)
     data_output = models.ForeignKey(File, on_delete=models.CASCADE, related_name='execution_outputs', null=True)
     script = models.ForeignKey(Script, on_delete=models.CASCADE, related_name='execution_scripts', default=None)
     algorithm = models.ForeignKey(Algorithm, on_delete=models.CASCADE, related_name='execution_algorithm', default=None)
@@ -165,4 +165,4 @@ class Execution(models.Model):
         ordering = ['order']
 
     def __str__(self):
-        return f"{self.data_output}"
+        return f"{self.algorithm} - {self.data_output}"

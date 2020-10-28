@@ -166,29 +166,31 @@ def create_algorithm(request):
                 description=algorithm_form.cleaned_data['description'],
                 user=current_user,
             )
+            algorithm.save()
             fields = algorithm_form.cleaned_data  # get all form fields entered
             scripts = {}
             execution = []
             keys = [key for key in fields if key.startswith('script')]  # get all keys matching 'script'
             for i, key in enumerate(keys):      # for each key of the cleaned_data keys
                 scripts[key] = fields[key]      # extract only data with the key 'script'
-                if i == 0:                      # the first Execution has its input data pre-defined
-                    execution.append(Execution(
-                        data_input=algorithm_form.cleaned_data['data_input'],
-                        script=scripts[key],    # linked to Script model
-                        algorithm=algorithm,    # linked to Algorithm
-                        order=i,                # the order of execution
-                    ))
-                else:
-                    execution.append(Execution(
-                        script=scripts[key],
-                        algorithm=algorithm,
-                        order=i,
-                    ))
-            
-            algorithm.save()
+                if scripts[key] is not None:
+                    if i == 0:                      # the first Execution has its input data pre-defined
+                        execution.append(Execution(
+                            data_input=algorithm_form.cleaned_data['data_input'],
+                            script=scripts[key],    # linked to Script model
+                            algorithm=algorithm,    # linked to Algorithm
+                            order=i,                # the order of execution
+                        ))
+                    else:
+                        execution.append(Execution(
+                            script=scripts[key],
+                            algorithm=algorithm,
+                            order=i,
+                        ))
+                    execution[i].save()
+
             messages.info(request, f"Created algorithm")
-            return HttpResponseRedirect(reverse('algorithm_builder'))
+            return HttpResponseRedirect(reverse('show_files'))
         else:
             messages.error(request, f"Could not create algorithm")
     else:

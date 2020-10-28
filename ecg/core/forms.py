@@ -51,4 +51,5 @@ class AlgorithmForm(forms.Form):
         self.fields['data_input'].queryset = File.objects.filter(user=self.user)  # filter files for one user
         for i in range(0, 4):
             self.fields[f'script[{i}]'] = forms.ModelChoiceField(queryset=Script.objects.all(),
-                                                                 label=f'Script to run: No.{i+1}')
+                                                                 label=f'Script to run: No.{i+1}',
+                                                                 required=False,)
