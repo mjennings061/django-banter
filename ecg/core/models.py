@@ -155,8 +155,8 @@ class Execution(models.Model):
         return file_id
 
     identifier = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    # data_input = models.ForeignKey(File, on_delete=models.CASCADE, related_name='execution_inputs', default=None)
-    # data_output = models.ForeignKey(File, on_delete=models.CASCADE, related_name='execution_outputs', null=True)
+    data_input = models.ForeignKey(File, on_delete=models.CASCADE, related_name='execution_inputs', default=None)
+    data_output = models.ForeignKey(File, on_delete=models.CASCADE, related_name='execution_outputs', null=True)
     script = models.ForeignKey(Script, on_delete=models.CASCADE, related_name='execution_scripts', default=None)
     algorithm = models.ForeignKey(Algorithm, on_delete=models.CASCADE, related_name='execution_algorithm', default=None)
     order = models.IntegerField(default=0)
