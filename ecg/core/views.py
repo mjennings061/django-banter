@@ -181,3 +181,9 @@ def create_algorithm(request):
         'algorithm_form': algorithm_form,
     }
     return render(request, 'create_algorithm.html', context)
+
+
+# TODO: create a page to see all user algorithms
+@login_required()
+def view_algorithms(request):
+    pass

@@ -4,6 +4,8 @@ import uuid     # used for unique ID generation
 import os   # used for filename changes
 from django.conf import settings
 import matlab.engine
+from django.db.models.signals import pre_delete
+from django.dispatch.dispatcher import receiver
 
 
 class FileFormat(models.Model):
@@ -37,7 +39,7 @@ class FileFormat(models.Model):
         return self.name
 
 
-# Uploaded file model (connects to UploadedFileForm)
+# TODO: create a delete method to remove files
 class File(models.Model):
     """Uploaded file model
 
@@ -76,7 +78,8 @@ class Script(models.Model):
     uploaded_script     The script file itself
 
     """
-    def script_path(instance, filename):   # dynamic filename changing for the uploaded file when saving
+    def script_path(instance, filename):
+        """ Dynamic filename changing for the uploaded file when saving """
         filename_output = "algorithm/%s" % filename   # filename is username_id.ext e.g mj_45ds.jpeg
         return os.path.join(settings.MEDIA_ROOT, filename_output)  # return filepath for storage
 
@@ -111,6 +114,7 @@ class Algorithm(models.Model):
 
     """
     def save_executions(self, fields):
+        """ Get scripts from form data and create instances of Execution """
         scripts = {}
         execution = []
         keys = [key for key in fields if key.startswith('script')]  # get all keys matching 'script'
@@ -133,6 +137,7 @@ class Algorithm(models.Model):
                 execution[i].save()
 
     def run_algorithm(self):
+        """ Run each instance of Execution related to the Algorithm instance """
         executions = Execution.objects.filter(algorithm=self).order_by('order')
         for i, execution in enumerate(executions):
             if i == 0:
@@ -163,6 +168,7 @@ class Execution(models.Model):
 
     """
     def run_file(self):
+        """ Run script by passing data_input and producing data_output  """
         if self.script.language == "M":     # if the script is a MATLAB file
             self.eng = matlab.engine.connect_matlab()  # connect to an open MATLAB window open at ecg\media
             data_file_path = self.data_input.uploaded_file.path     # get the datafile path from the model
@@ -184,8 +190,8 @@ class Execution(models.Model):
         return file_id
 
     identifier = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    data_input = models.ForeignKey(File, on_delete=models.CASCADE, related_name='execution_inputs', null=True)
-    data_output = models.ForeignKey(File, on_delete=models.CASCADE, related_name='execution_outputs', null=True)
+    data_input = models.ForeignKey(File, on_delete=models.SET_NULL, related_name='execution_inputs', null=True)
+    data_output = models.ForeignKey(File, on_delete=models.SET_NULL, related_name='execution_outputs', null=True)
     script = models.ForeignKey(Script, on_delete=models.CASCADE, related_name='execution_scripts', default=None)
     algorithm = models.ForeignKey(Algorithm, on_delete=models.CASCADE, related_name='execution_algorithm', default=None)
     order = models.IntegerField(default=0)
@@ -195,3 +201,18 @@ class Execution(models.Model):
 
     def __str__(self):
         return f"{self.algorithm} - {self.order}-{self.data_output}"
+
+
+def _delete_file(path):
+    """ Deletes file from filesystem. """
+    if os.path.isfile(path):
+        with open(path) as file:
+            file.close()
+        os.remove(path)
+
+
+@receiver(models.signals.post_delete, sender=File)
+def delete_file(sender, instance, *args, **kwargs):
+    """ Deletes files on post_delete """
+    if instance.uploaded_file:
+        _delete_file(instance.uploaded_file.path)
