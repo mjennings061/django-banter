@@ -1,4 +1,4 @@
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.contrib import messages  # alert the user
 from django.contrib.auth import login, logout as django_logout, authenticate  # user handling (register)
 from django.contrib.auth.forms import AuthenticationForm
@@ -6,9 +6,10 @@ from django.contrib.auth.models import User  # import django's model for the use
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 import json as simplejson   # for handling AJAX queries from forms
+from django.urls import reverse
 
-from .models import File, Script, Execution
-from .forms import NewUserForm, UploadFileForm, ExecutionSelectForm
+from .models import File, Script, Execution, Algorithm
+from .forms import NewUserForm, UploadFileForm, ExecutionSelectForm, AlgorithmForm
 
 
 # Create your views here.
@@ -92,7 +93,6 @@ def upload(request):
     return render(request, 'file_upload.html', context)
 
 
-# TODO Show only the file name, not the whole path (security)
 @login_required
 def show_files(request):
     current_user = request.user
@@ -117,7 +117,6 @@ def download_result(file_id):
 
 @login_required
 def run_script(request):
-    # TODO: Download the resultant file
     current_user = request.user     # get the logged in user
     if request.method == "POST":    # if data is posted
         execution_form = ExecutionSelectForm(request.POST, user=current_user)   # submit POST data to ModelForm
@@ -153,3 +152,32 @@ def get_scripts(request, data_input_id):
     for script in scripts:  # form a dictionary with script IDs to fill the select form
         script_dict[script.id] = script.identifier
     return HttpResponse(simplejson.dumps(script_dict))  # return a JSON file with compatible scripts
+
+
+# Create an algorithm instance before linking Executions to it
+@login_required
+def create_algorithm(request):
+    current_user = request.user
+    if request.method == "POST":  # if data is posted
+        algorithm_form = AlgorithmForm(request.POST, user=current_user)  # submit POST data to ModelForm
+        if algorithm_form.is_valid():   # if all required data is fulfilled
+            algorithm = Algorithm(
+                name=algorithm_form.cleaned_data['name'],
+                description=algorithm_form.cleaned_data['description'],
+                user=current_user,
+            )
+            algorithm.save()    # save the instance of Algorithm
+            algorithm.save_executions(algorithm_form.cleaned_data)  # create an Execution for each script selected
+            algorithm.run_algorithm()   # run each instance of Execution in the order they were selected
+            messages.info(request, f"Created algorithm")    # success toasts
+            messages.success(request, f"Algorithm processed successfully")
+            return HttpResponseRedirect(reverse('show_files'))  # redirect to where you can see the files
+        else:
+            messages.error(request, f"Could not create algorithm")
+    else:
+        algorithm_form = AlgorithmForm(user=current_user)
+
+    context = {
+        'algorithm_form': algorithm_form,
+    }
+    return render(request, 'create_algorithm.html', context)

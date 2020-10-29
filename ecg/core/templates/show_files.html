@@ -3,10 +3,10 @@
 {% block content %}
     {% if current_user.is_authenticated %}
         <br>
-        <a href="{% url 'run_script' %}" class="waves-effect waves-light btn-large">
-            <i class="material-icons right">autorenew</i>Run</a>
+        <a href="{% url 'create_algorithm' %}" class="waves-effect waves-light btn-large">
+            <i class="material-icons right">autorenew</i>Process</a>
         <br>
-        <h5>Files for {{ current_user.username }}:</h5>
+        <h5>All files for {{ current_user.username }}:</h5>
         <table>
             <thead>
                 <tr>

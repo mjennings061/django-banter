@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import File, FileFormat, Script, Execution    # Handler
+from .models import File, FileFormat, Script, Execution, Algorithm
 
 
 # Register your models here.
@@ -23,6 +23,6 @@ class ExecutionAdmin(admin.ModelAdmin):
     pass
 
 
-# @admin.register(Handler)
-# class HandlerAdmin(admin.ModelAdmin):
-#     pass
+@admin.register(Algorithm)
+class AlgorithmAdmin(admin.ModelAdmin):
+    pass

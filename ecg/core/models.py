@@ -54,10 +54,6 @@ class File(models.Model):
         filename = "user_data/%s_%s.%s" % (instance.user, instance.identifier, ext)
         return os.path.join(settings.MEDIA_ROOT, filename)  # return filepath for storage
 
-    @property
-    def get_filename(self):
-        return os.path.basename(self.uploaded_file.name)
-
     user = models.ForeignKey(User, on_delete=models.CASCADE)    # link to the user uploading the file
     identifier = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)  # unique ID for the file
     name = models.CharField(max_length=100, default=' ')    # user-given name for the file
@@ -66,7 +62,7 @@ class File(models.Model):
                                default=FileFormat.objects.values('name')[0])
 
     def __str__(self):
-        return f"{self.user} - {self.name}"
+        return f"{self.user}-{self.name}"
 
 
 class Script(models.Model):
@@ -95,13 +91,65 @@ class Script(models.Model):
     description = models.TextField()
     language = models.CharField(max_length=1, choices=LANGUAGE_CHOICES, default=MATLAB)
     data_input = models.ForeignKey(FileFormat, on_delete=models.CASCADE, related_name='script_inputs',
-                                    default=FileFormat.objects.values('name')[0])
+                                   default=FileFormat.objects.values('name')[0])
     data_output = models.ForeignKey(FileFormat, on_delete=models.CASCADE, related_name='script_outputs',
                                     default=FileFormat.objects.values('name')[0])
     uploaded_script = models.FileField(upload_to=script_path, null=True, max_length=200)  # the file itself
 
     def __str__(self):
         return self.identifier
+
+
+class Algorithm(models.Model):
+    """Executing an input file from a chain of scripts
+
+    identifier      Unique ID of the instance
+    user            The user executing the algorithm
+    name            User-defined name for their algorithm
+    description     User-defined description
+    scripts         The chain of executable files to run
+
+    """
+    def save_executions(self, fields):
+        scripts = {}
+        execution = []
+        keys = [key for key in fields if key.startswith('script')]  # get all keys matching 'script'
+        for i, key in enumerate(keys):  # for each key of the cleaned_data keys
+            scripts[key] = fields[key]  # extract only data with the key 'script'
+            if scripts[key] is not None:
+                if i == 0:  # the first Execution has its input data pre-defined
+                    execution.append(Execution(
+                        data_input=fields['data_input'],
+                        script=scripts[key],  # linked to Script model
+                        algorithm=self,  # linked to Algorithm
+                        order=i,  # the order of execution
+                    ))
+                else:
+                    execution.append(Execution(
+                        script=scripts[key],
+                        algorithm=self,
+                        order=i,
+                    ))
+                execution[i].save()
+
+    def run_algorithm(self):
+        executions = Execution.objects.filter(algorithm=self).order_by('order')
+        for i, execution in enumerate(executions):
+            if i == 0:
+                execution.run_file()
+            else:
+                execution.data_input = executions[i - 1].data_output
+                execution.run_file()
+            execution.save()
+
+    identifier = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)  # unique ID for the instance
+    user = models.ForeignKey(User, on_delete=models.CASCADE)  # link to the user creating it
+    name = models.CharField(max_length=100)
+    description = models.TextField()
+    scripts = models.ManyToManyField(Script, through='Execution', related_name="algorithms_related")
+
+    def __str__(self):
+        return f"{self.name}"
 
 
 class Execution(models.Model):
@@ -111,6 +159,7 @@ class Execution(models.Model):
     data_input      The file to be processed
     script          The executable file to process the file
     data_output     The result of executing data_file
+    order           The order in which this will run
 
     """
     def run_file(self):
@@ -134,10 +183,15 @@ class Execution(models.Model):
             file_id = 0
         return file_id
 
-    identifier = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)  # unique ID for the file
-    data_input = models.ForeignKey(File, on_delete=models.CASCADE, related_name='execution_inputs', default=None)
-    script = models.ForeignKey(Script, on_delete=models.CASCADE, related_name='execution_scripts', default=None)
+    identifier = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    data_input = models.ForeignKey(File, on_delete=models.CASCADE, related_name='execution_inputs', null=True)
     data_output = models.ForeignKey(File, on_delete=models.CASCADE, related_name='execution_outputs', null=True)
+    script = models.ForeignKey(Script, on_delete=models.CASCADE, related_name='execution_scripts', default=None)
+    algorithm = models.ForeignKey(Algorithm, on_delete=models.CASCADE, related_name='execution_algorithm', default=None)
+    order = models.IntegerField(default=0)
+
+    class Meta:
+        ordering = ['order']
 
     def __str__(self):
-        return f"{self.data_output}"
+        return f"{self.algorithm} - {self.order}-{self.data_output}"
