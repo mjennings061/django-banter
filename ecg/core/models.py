@@ -216,3 +216,10 @@ def delete_file(sender, instance, *args, **kwargs):
     """ Deletes files on post_delete """
     if instance.uploaded_file:
         _delete_file(instance.uploaded_file.path)
+
+
+@receiver(models.signals.post_delete, sender=Execution)
+def delete_execution_files(sender, instance, *args, **kwargs):
+    """ Deletes output file related to an Execution instance upon deletion """
+    if instance.data_output:
+        _delete_file(instance.data_output.uploaded_file.path)
