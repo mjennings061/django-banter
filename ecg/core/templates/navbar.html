@@ -9,7 +9,7 @@
         <li><a href="{% url 'show_files' %}">{{ user.username }}</a></li>
         <li><a href="{% url 'logout' %}">Logout</a></li>
         <li><a href="{% url 'upload' %}"><i class="material-icons">cloud_upload</i></a></li>
-        <li><a href="{% url 'run_script' %}"><i class="material-icons">autorenew</i></a></li>
+        <li><a href="{% url 'create_algorithm' %}"><i class="material-icons">autorenew</i></a></li>
       {% else %}
         <li><a href="{% url 'register' %}">Register</a></li>
         <li><a href="{% url 'login' %}">Login</a></li>

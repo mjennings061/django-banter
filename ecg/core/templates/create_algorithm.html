@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <p>Name your algorithm</p>
+    <p>Create your algorithm:</p>
     <form action={% url 'create_algorithm' %} method="POST">
         <div class="input-field">
             {% csrf_token %}

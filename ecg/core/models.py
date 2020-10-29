@@ -62,7 +62,7 @@ class File(models.Model):
                                default=FileFormat.objects.values('name')[0])
 
     def __str__(self):
-        return f"{self.user} - {self.name}"
+        return f"{self.user}-{self.name}"
 
 
 class Script(models.Model):
@@ -110,14 +110,43 @@ class Algorithm(models.Model):
     scripts         The chain of executable files to run
 
     """
+    def save_executions(self, fields):
+        scripts = {}
+        execution = []
+        keys = [key for key in fields if key.startswith('script')]  # get all keys matching 'script'
+        for i, key in enumerate(keys):  # for each key of the cleaned_data keys
+            scripts[key] = fields[key]  # extract only data with the key 'script'
+            if scripts[key] is not None:
+                if i == 0:  # the first Execution has its input data pre-defined
+                    execution.append(Execution(
+                        data_input=fields['data_input'],
+                        script=scripts[key],  # linked to Script model
+                        algorithm=self,  # linked to Algorithm
+                        order=i,  # the order of execution
+                    ))
+                else:
+                    execution.append(Execution(
+                        script=scripts[key],
+                        algorithm=self,
+                        order=i,
+                    ))
+                execution[i].save()
+
     def run_algorithm(self):
-        pass
+        executions = Execution.objects.filter(algorithm=self).order_by('order')
+        for i, execution in enumerate(executions):
+            if i == 0:
+                execution.run_file()
+            else:
+                execution.data_input = executions[i - 1].data_output
+                execution.run_file()
+            execution.save()
 
     identifier = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)  # unique ID for the instance
     user = models.ForeignKey(User, on_delete=models.CASCADE)  # link to the user creating it
     name = models.CharField(max_length=100)
     description = models.TextField()
-    scripts = models.ManyToManyField(Script, through='Execution')
+    scripts = models.ManyToManyField(Script, through='Execution', related_name="algorithms_related")
 
     def __str__(self):
         return f"{self.name}"
@@ -165,4 +194,4 @@ class Execution(models.Model):
         ordering = ['order']
 
     def __str__(self):
-        return f"{self.algorithm} - {self.data_output}"
+        return f"{self.algorithm} - {self.order}-{self.data_output}"

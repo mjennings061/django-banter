@@ -160,37 +160,18 @@ def create_algorithm(request):
     current_user = request.user
     if request.method == "POST":  # if data is posted
         algorithm_form = AlgorithmForm(request.POST, user=current_user)  # submit POST data to ModelForm
-        if algorithm_form.is_valid():
+        if algorithm_form.is_valid():   # if all required data is fulfilled
             algorithm = Algorithm(
                 name=algorithm_form.cleaned_data['name'],
                 description=algorithm_form.cleaned_data['description'],
                 user=current_user,
             )
-            algorithm.save()
-            fields = algorithm_form.cleaned_data  # get all form fields entered
-            scripts = {}
-            execution = []
-            keys = [key for key in fields if key.startswith('script')]  # get all keys matching 'script'
-            for i, key in enumerate(keys):      # for each key of the cleaned_data keys
-                scripts[key] = fields[key]      # extract only data with the key 'script'
-                if scripts[key] is not None:
-                    if i == 0:                      # the first Execution has its input data pre-defined
-                        execution.append(Execution(
-                            data_input=algorithm_form.cleaned_data['data_input'],
-                            script=scripts[key],    # linked to Script model
-                            algorithm=algorithm,    # linked to Algorithm
-                            order=i,                # the order of execution
-                        ))
-                    else:
-                        execution.append(Execution(
-                            script=scripts[key],
-                            algorithm=algorithm,
-                            order=i,
-                        ))
-                    execution[i].save()
-
-            messages.info(request, f"Created algorithm")
-            return HttpResponseRedirect(reverse('show_files'))
+            algorithm.save()    # save the instance of Algorithm
+            algorithm.save_executions(algorithm_form.cleaned_data)  # create an Execution for each script selected
+            algorithm.run_algorithm()   # run each instance of Execution in the order they were selected
+            messages.info(request, f"Created algorithm")    # success toasts
+            messages.success(request, f"Algorithm processed successfully")
+            return HttpResponseRedirect(reverse('show_files'))  # redirect to where you can see the files
         else:
             messages.error(request, f"Could not create algorithm")
     else:
