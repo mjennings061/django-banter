@@ -97,7 +97,9 @@ def upload(request):
 @login_required
 def show_files(request):
     current_user = request.user
-    files = File.objects.filter(user=current_user)
+    files = File.objects.filter(
+        user=current_user
+    )
 
     context = {
         'current_user': current_user,
@@ -106,17 +108,21 @@ def show_files(request):
     return render(request, 'show_files.html', context)
 
 
-# TODO complete download and delete to return the resultant file
 @login_required
-def download_file(request, file_id):
+def download_file(request, file_id, delete=0):
+    """ Download a user file and delete if requested (1) """
     file = File.objects.get(identifier=file_id)
     if file.uploaded_file.path:
         if request.user.id is file.user.id:
             file_path = file.uploaded_file.path
             with open(file_path, 'rb') as fh:
-                response = HttpResponse(fh.read(), content_type=file.format.mime_type)
-                response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
-                return response
+                contents = fh.read()
+
+            response = HttpResponse(contents, content_type=file.format.mime_type)
+            response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
+            if delete:
+                file.delete()
+            return response
     raise Http404
 
 
@@ -148,9 +154,9 @@ def run_script(request):
     return render(request, 'run_script.html', context)
 
 
-# Get all scripts compatible with the input file UUID
 @login_required
 def get_scripts(request, data_input_id):
+    """ Get all scripts compatible with the input file UUID """
     data_input = File.objects.get(pk=data_input_id).format  # get the file format of the input file
     scripts = Script.objects.filter(data_input=data_input)  # get the scripts with compatible inputs matching data_input
     script_dict = {}
@@ -159,9 +165,9 @@ def get_scripts(request, data_input_id):
     return HttpResponse(simplejson.dumps(script_dict))  # return a JSON file with compatible scripts
 
 
-# Create an algorithm instance before linking Executions to it
 @login_required
-def create_algorithm(request):
+def create_algorithm(request, input_file_id=None):
+    """ Create an algorithm instance before linking Executions to it """
     current_user = request.user
     if request.method == "POST":  # if data is posted
         algorithm_form = AlgorithmForm(request.POST, user=current_user)  # submit POST data to ModelForm
@@ -174,11 +180,20 @@ def create_algorithm(request):
             algorithm.save()    # save the instance of Algorithm
             algorithm.save_executions(algorithm_form.cleaned_data)  # create an Execution for each script selected
             output_file_id = algorithm.run_algorithm()   # run each Execution in the order they were selected
-            messages.info(request, f"Created algorithm")    # success toasts
-            messages.success(request, f"Algorithm processed successfully")
-            return HttpResponseRedirect(reverse(f'download_file', kwargs={'file_id': output_file_id}))
+            if output_file_id is not None:
+                messages.info(request, f"Created algorithm")    # success toasts
+                messages.success(request, f"Algorithm processed successfully")
+                return HttpResponseRedirect(reverse(f'download_file', kwargs={  # go to download view and delete output file
+                    'file_id': output_file_id,
+                    'delete': 1
+                }))
+            else:
+                algorithm_form = AlgorithmForm(user=current_user)
+                messages.error(request, f"Could not create algorithm")
         else:
             messages.error(request, f"Could not create algorithm")
+    elif input_file_id is not None:   # empty form during a GET request
+        algorithm_form = AlgorithmForm(user=current_user, data_input_id=input_file_id)
     else:
         algorithm_form = AlgorithmForm(user=current_user)
 

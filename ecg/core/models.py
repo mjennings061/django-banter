@@ -4,7 +4,6 @@ import uuid     # used for unique ID generation
 import os   # used for filename changes
 from django.conf import settings
 import matlab.engine
-from django.db.models.signals import pre_delete
 from django.dispatch.dispatcher import receiver
 
 
@@ -133,20 +132,25 @@ class Algorithm(models.Model):
                         algorithm=self,
                         order=i,
                     ))
-                execution[i].save()
+                execution[i].save()     # save the current instance of Execution
                 self.scripts.add(execution[i].script)   # add the m2m relation to Algorithm
                 self.save()
 
     def run_algorithm(self):
         """ Run each instance of Execution related to the Algorithm instance """
-        executions = Execution.objects.filter(algorithm=self).order_by('order')
-        for i, execution in enumerate(executions):
-            if i == 0:
-                execution.run_file()
-            else:
-                execution.data_input = executions[i - 1].data_output
-                file_id = execution.run_file()
-            execution.save()
+        executions = Execution.objects.filter(algorithm=self).order_by('order')  # ordered by selection order in form
+        for i, execution in enumerate(executions):  # for each execution to be processed
+            try:    # error handler for MATLAB and python scripts
+                if i == 0:
+                    execution.run_file()    # process the data_input file through the script to make data_output
+                    execution.save()
+                else:
+                    execution.data_input = executions[i - 1].data_output    # current input file is the previous output
+                    file_id = execution.run_file()
+                    execution.save()
+                    execution.data_input.delete()   # delete the middle-files
+            except (matlab.engine.MatlabExecutionError, AttributeError):  # quit if an error is raised
+                return None
         return file_id
 
     identifier = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)  # unique ID for the instance
@@ -172,11 +176,15 @@ class Execution(models.Model):
     def run_file(self):
         """ Run script by passing data_input and producing data_output  """
         if self.script.language == "M":     # if the script is a MATLAB file
-            self.eng = matlab.engine.connect_matlab()  # connect to an open MATLAB window open at ecg\media
-            data_file_path = self.data_input.uploaded_file.path     # get the datafile path from the model
-            script_file_path = self.script.uploaded_script.path     # get the script file path from the model
-            file_id = self.eng.handler(script_file_path, data_file_path)    # execute the file by passing thru handler
-            self.eng.quit()         # stop the MATLAB engine for this instance
+            try:
+                self.eng = matlab.engine.connect_matlab()  # connect to an open MATLAB window open at ecg\media
+                data_file_path = self.data_input.uploaded_file.path     # get the datafile path from the model
+                script_file_path = self.script.uploaded_script.path     # get the script file path from the model
+                file_id = self.eng.handler(script_file_path, data_file_path)  # execute the file by passing thru handler
+                self.eng.quit()         # stop the MATLAB engine for this instance
+            except (matlab.engine.MatlabExecutionError, AttributeError):  # quit if an error is raised
+                self.eng.quit()
+                return None
             if file_id is not None or 0:    # if the script processed ok
                 result_file = File(     # create an instance of File to store the result file in
                     name=f"result_{int(file_id)}",      # the file name is the same as the MATLAB output

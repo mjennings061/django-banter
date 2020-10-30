@@ -47,8 +47,11 @@ class AlgorithmForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)  # get the current user
+        self.data_input_id = kwargs.pop('data_input_id', None)
         super(AlgorithmForm, self).__init__(*args, **kwargs)
         self.fields['data_input'].queryset = File.objects.filter(user=self.user)  # filter files for one user
+        if self.data_input_id is not None:  # if a particular file has been identified then select it first
+            self.initial['data_input'] = File.objects.get(identifier=self.data_input_id)
         for i in range(0, 4):
             self.fields[f'script[{i}]'] = forms.ModelChoiceField(queryset=Script.objects.all(),
                                                                  label=f'Script to run: No.{i+1}',

@@ -3,7 +3,7 @@
 {% block content %}
     {% if current_user.is_authenticated %}
         <br>
-        <a href="{% url 'create_algorithm' %}" class="waves-effect waves-light btn-large">
+        <a href="{% url 'create_algorithm' %}" class="waves-effect waves-light indigo darken-4 btn-large">
             <i class="material-icons right">autorenew</i>Process</a>
         <br>
         <h5>All files for {{ current_user.username }}:</h5>
@@ -22,6 +22,20 @@
                         <td>{{ file.format }}</td>
                         {% load filename %} {# Get filename #}
                         <td>{{ file.uploaded_file | getfilename }}</td>
+                        <td><a
+                                class="btn waves-effect waves-light indigo darken-4"
+                                href="{% url 'download_file' file_id=file.identifier %}"
+                                name="download">
+                                <i class="material-icons">cloud_download</i>
+                            </a>
+                        </td>
+                        <td><a
+                                class="btn waves-effect waves-light indigo darken-4"
+                                href="{% url 'create_algorithm' input_file_id=file.identifier %}"
+                                name="process">
+                                <i class="material-icons">autorenew</i>
+                            </a>
+                        </td>
                     </tr>
                 {% endfor %}
             </tbody>
