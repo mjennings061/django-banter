@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 import json as simplejson   # for handling AJAX queries from forms
 from django.urls import reverse
+import os
 
 from .models import File, Script, Execution, Algorithm
 from .forms import NewUserForm, UploadFileForm, ExecutionSelectForm, AlgorithmForm
@@ -107,12 +108,16 @@ def show_files(request):
 
 # TODO complete download and delete to return the resultant file
 @login_required
-def download_result(file_id):
-    # TODO: Check the file ID exists and return a 404 if not
-    # TODO: Only let the user download their own results
-    response = HttpResponse(content_type='text/csv')    # TODO change to MIME type from File
-    response['Content-Disposition'] = f"attachment; filename='{file_id}.csv'"
-    return response
+def download_file(request, file_id):
+    file = File.objects.get(id=file_id)
+    if file.uploaded_file.path:
+        if request.user is file.user:
+            file_path = file.uploaded_file.path
+            with open(file_path, 'rb') as fh:
+                response = HttpResponse(fh.read(), content_type=file.format.mime_type)
+                response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
+                return response
+    raise Http404
 
 
 @login_required
@@ -169,6 +174,7 @@ def create_algorithm(request):
             algorithm.save()    # save the instance of Algorithm
             algorithm.save_executions(algorithm_form.cleaned_data)  # create an Execution for each script selected
             algorithm.run_algorithm()   # run each instance of Execution in the order they were selected
+            download_file(request, File.objects.get())
             messages.info(request, f"Created algorithm")    # success toasts
             messages.success(request, f"Algorithm processed successfully")
             return HttpResponseRedirect(reverse('show_files'))  # redirect to where you can see the files

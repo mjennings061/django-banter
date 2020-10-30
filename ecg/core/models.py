@@ -39,7 +39,6 @@ class FileFormat(models.Model):
         return self.name
 
 
-# TODO: create a delete method to remove files
 class File(models.Model):
     """Uploaded file model
 
@@ -135,6 +134,8 @@ class Algorithm(models.Model):
                         order=i,
                     ))
                 execution[i].save()
+                self.scripts.add(execution[i].script)   # add the m2m relation to Algorithm
+                self.save()
 
     def run_algorithm(self):
         """ Run each instance of Execution related to the Algorithm instance """
