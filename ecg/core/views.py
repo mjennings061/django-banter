@@ -8,6 +8,7 @@ from django.shortcuts import render, redirect
 import json as simplejson   # for handling AJAX queries from forms
 from django.urls import reverse
 import os
+from django.core.exceptions import ObjectDoesNotExist
 
 from .models import File, Script, Execution, Algorithm
 from .forms import NewUserForm, UploadFileForm, ExecutionSelectForm, AlgorithmForm
@@ -113,9 +114,9 @@ def download_file(request, file_id, delete=0):
     """ Download a user file and delete if requested (1) """
     file = File.objects.get(identifier=file_id)
     if file.uploaded_file.path:
-        if request.user.id is file.user.id:
+        if request.user.id is file.user.id:     # if the file belongs to the user requesting it
             file_path = file.uploaded_file.path
-            with open(file_path, 'rb') as fh:
+            with open(file_path, 'rb') as fh:   # ensure the file is closed
                 contents = fh.read()
 
             response = HttpResponse(contents, content_type=file.format.mime_type)
@@ -124,6 +125,20 @@ def download_file(request, file_id, delete=0):
                 file.delete()
             return response
     raise Http404
+
+
+@login_required
+def delete_file(request, file_id):
+    """ Delete a user file """
+    try:
+        file = File.objects.get(identifier=file_id)     # get the file instance
+        if request.user.id is file.user.id:  # if the file belongs to the user requesting it
+            file_path = file.uploaded_file.path
+            file.delete()  # delete the file instance - this also triggers file deletion using a model signal
+            messages.info(f'{file} deleted')
+            return HttpResponseRedirect(reverse('show_files'))  # redirect to the file loading screen
+    except ObjectDoesNotExist:  # if it does not exist, raise 404
+        raise Http404
 
 
 @login_required

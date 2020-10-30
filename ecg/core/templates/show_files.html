@@ -36,6 +36,13 @@
                                 <i class="material-icons">autorenew</i>
                             </a>
                         </td>
+                        <td><a
+                                class="btn waves-effect waves-light indigo darken-4"
+                                href="{% url 'delete_file' file_id=file.identifier %}"
+                                name="delete">
+                                <i class="material-icons">delete</i>
+                            </a>
+                        </td>
                     </tr>
                 {% endfor %}
             </tbody>
