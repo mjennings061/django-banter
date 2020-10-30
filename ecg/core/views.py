@@ -109,9 +109,9 @@ def show_files(request):
 # TODO complete download and delete to return the resultant file
 @login_required
 def download_file(request, file_id):
-    file = File.objects.get(id=file_id)
+    file = File.objects.get(identifier=file_id)
     if file.uploaded_file.path:
-        if request.user is file.user:
+        if request.user.id is file.user.id:
             file_path = file.uploaded_file.path
             with open(file_path, 'rb') as fh:
                 response = HttpResponse(fh.read(), content_type=file.format.mime_type)
@@ -173,11 +173,10 @@ def create_algorithm(request):
             )
             algorithm.save()    # save the instance of Algorithm
             algorithm.save_executions(algorithm_form.cleaned_data)  # create an Execution for each script selected
-            algorithm.run_algorithm()   # run each instance of Execution in the order they were selected
-            download_file(request, File.objects.get())
+            output_file_id = algorithm.run_algorithm()   # run each Execution in the order they were selected
             messages.info(request, f"Created algorithm")    # success toasts
             messages.success(request, f"Algorithm processed successfully")
-            return HttpResponseRedirect(reverse('show_files'))  # redirect to where you can see the files
+            return HttpResponseRedirect(reverse(f'download_file', kwargs={'file_id': output_file_id}))
         else:
             messages.error(request, f"Could not create algorithm")
     else:

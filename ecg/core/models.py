@@ -145,8 +145,9 @@ class Algorithm(models.Model):
                 execution.run_file()
             else:
                 execution.data_input = executions[i - 1].data_output
-                execution.run_file()
+                file_id = execution.run_file()
             execution.save()
+        return file_id
 
     identifier = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)  # unique ID for the instance
     user = models.ForeignKey(User, on_delete=models.CASCADE)  # link to the user creating it
@@ -188,7 +189,7 @@ class Execution(models.Model):
         # TODO: Add a python run option
         if self.script.language == "P":
             file_id = 0
-        return file_id
+        return result_file.identifier
 
     identifier = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     data_input = models.ForeignKey(File, on_delete=models.SET_NULL, related_name='execution_inputs', null=True)
@@ -219,6 +220,7 @@ def delete_file(sender, instance, *args, **kwargs):
         _delete_file(instance.uploaded_file.path)
 
 
+# TODO: delete File instance from table with the file itself
 @receiver(models.signals.post_delete, sender=Execution)
 def delete_execution_files(sender, instance, *args, **kwargs):
     """ Deletes output file related to an Execution instance upon deletion """
