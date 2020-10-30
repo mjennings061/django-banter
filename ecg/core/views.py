@@ -198,7 +198,7 @@ def create_algorithm(request, input_file_id=None):
             if output_file_id is not None:
                 messages.info(request, f"Created algorithm")    # success toasts
                 messages.success(request, f"Algorithm processed successfully")
-                return HttpResponseRedirect(reverse(f'download_file', kwargs={  # go to download view and delete output file
+                return HttpResponseRedirect(reverse(f'download_file', kwargs={  # download and delete output file
                     'file_id': output_file_id,
                     'delete': 1
                 }))
@@ -220,5 +220,25 @@ def create_algorithm(request, input_file_id=None):
 
 # TODO: create a page to see all user algorithms
 @login_required()
-def view_algorithms(request):
-    pass
+def show_algorithms(request):
+    current_user = request.user
+    algorithms = Algorithm.objects.filter(user=current_user)
+    context = {
+        'current_user': current_user,
+        'algorithms': algorithms,
+    }
+    return render(request, 'show_algorithms.html', context)
+
+
+@login_required
+def delete_algorithm(request, algorithm_id):
+    """ Delete an algorithm """
+    try:
+        algorithm = Algorithm.objects.get(identifier=algorithm_id)     # get the algo instance
+        if request.user.id is algorithm.user.id:  # if the algo belongs to the user requesting it
+            algorithm.delete()
+            messages.info(request, f'{algorithm} deleted')
+            return HttpResponseRedirect(reverse('show_algorithms'))  # redirect
+    except ObjectDoesNotExist:  # if it does not exist, raise 404
+        messages.error(request, f'Algorithm not found')
+        raise Http404

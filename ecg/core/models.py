@@ -138,20 +138,20 @@ class Algorithm(models.Model):
 
     def run_algorithm(self):
         """ Run each instance of Execution related to the Algorithm instance """
-        executions = Execution.objects.filter(algorithm=self).order_by('order')  # ordered by selection order in form
-        for i, execution in enumerate(executions):  # for each execution to be processed
-            try:    # error handler for MATLAB and python scripts
+        try:  # error handler for MATLAB and python scripts
+            executions = Execution.objects.filter(algorithm=self).order_by('order')  # ordered by selection order in form
+            for i, execution in enumerate(executions):  # for each execution to be processed
                 if i == 0:
-                    execution.run_file()    # process the data_input file through the script to make data_output
+                    file_id = execution.run_file()   # process data_input file through the script to make data_output
                     execution.save()
                 else:
                     execution.data_input = executions[i - 1].data_output    # current input file is the previous output
                     file_id = execution.run_file()
                     execution.save()
                     execution.data_input.delete()   # delete the middle-files
-            except (matlab.engine.MatlabExecutionError, AttributeError):  # quit if an error is raised
-                return None
-        return file_id
+            return file_id
+        except (matlab.engine.MatlabExecutionError, AttributeError):  # quit if an error is raised
+            return None
 
     identifier = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)  # unique ID for the instance
     user = models.ForeignKey(User, on_delete=models.CASCADE)  # link to the user creating it
@@ -190,7 +190,9 @@ class Execution(models.Model):
                     name=f"result_{int(file_id)}",      # the file name is the same as the MATLAB output
                     user=self.data_input.user,          # user is required to attach the files to
                     format=self.script.data_output,     # format is derived from the script's default format
-                    uploaded_file=os.path.join(settings.MEDIA_ROOT, f"results/{int(file_id)}.csv"),
+                    uploaded_file=os.path.join(
+                        settings.MEDIA_ROOT, 
+                        f"results/{int(file_id)}{self.script.data_output.extension}")
                 )
                 result_file.save()
                 self.data_output = result_file  # save all of result_file to data_output
@@ -228,7 +230,6 @@ def delete_file(sender, instance, *args, **kwargs):
         _delete_file(instance.uploaded_file.path)
 
 
-# TODO: delete File instance from table with the file itself
 @receiver(models.signals.post_delete, sender=Execution)
 def delete_execution_files(sender, instance, *args, **kwargs):
     """ Deletes output file related to an Execution instance upon deletion """
