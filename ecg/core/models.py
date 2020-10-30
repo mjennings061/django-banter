@@ -191,7 +191,7 @@ class Execution(models.Model):
                     user=self.data_input.user,          # user is required to attach the files to
                     format=self.script.data_output,     # format is derived from the script's default format
                     uploaded_file=os.path.join(
-                        settings.MEDIA_ROOT, 
+                        settings.MEDIA_ROOT,
                         f"results/{int(file_id)}{self.script.data_output.extension}")
                 )
                 result_file.save()

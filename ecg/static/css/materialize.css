@@ -13,6 +13,21 @@
 .uu-ghost-white {
   background-color: #FFFFFF !important; }
 
+.uu-core-blue-text {
+  color: #041E42 !important; }
+
+.uu-deep-blue-text {
+  color: #151F5D !important; }
+
+.uu-bright-blue-text {
+  color: #009FDF !important; }
+
+.uu-sky-blue-text {
+  color: #00B5E2 !important; }
+
+.uu-ghost-white-text {
+  color: #FFFFFF !important; }
+
 .materialize-red {
   background-color: #e51c23 !important; }
 
@@ -6460,3 +6475,12 @@ input[type=range]::-ms-thumb {
     margin-top: 1.2rem; } }
 
 /*# sourceMappingURL=materialize.css.map */
+body {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+}
+
+main {
+  flex: 1 0 auto;
+}

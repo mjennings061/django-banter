@@ -1,8 +1,52 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h3>Coming Soon...</h3>
-    <div>
-
+    <h1 class="header center uu-core-blue-text">Algorithm Development Area</h1>
+    <div class="row">
+        <div class="col s4 m4">
+            <div class="card">
+                <div class="card-image">
+                    {% load static %}
+                    <img src="{% static 'core/design.jpg' %}" alt="nibec logo">
+                    <a href="{% url 'create_algorithm' %}"
+                        class="btn-floating halfway-fab waves-effect waves-light uu-bright-blue">
+                    <i class="material-icons">chevron_right</i></a>
+                </div>
+                <div class="card-content">
+                    <span class="card-title">Design an Algorithm</span>
+                    <p>Design your own algorithm by uploading your data and choosing which scripts to run</p>
+                </div>
+            </div>
+        </div>
+        <div class="col s4 m4">
+            <div class="card">
+                <div class="card-image">
+                    {% load static %}
+                    <img src="{% static 'core/algorithm.jpg' %}" alt="nibec logo">
+                    <a href="{% url 'show_algorithms' %}"
+                        class="btn-floating halfway-fab waves-effect waves-light uu-bright-blue">
+                    <i class="material-icons">chevron_right</i></a>
+                </div>
+                <div class="card-content">
+                    <span class="card-title">View your algorithms</span>
+                    <p>View your previous hard work. You didn't write the code? We won't tell if you won't.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col s4 m4">
+            <div class="card">
+                <div class="card-image">
+                    {% load static %}
+                    <img src="{% static 'core/nibec.jpg' %}" alt="nibec logo">
+                    <a href="https://www.ulster.ac.uk/nibec"
+                        class="btn-floating halfway-fab waves-effect waves-light uu-bright-blue">
+                    <i class="material-icons">chevron_right</i></a>
+                </div>
+                <div class="card-content">
+                    <span class="card-title">Nanotechnology & Integrated Bioengineering Centre (NIBEC)</span>
+                    <p>NIBEC is the home of the Engineering Research Institute of Ulster University, Northern Ireland</p>
+                </div>
+            </div>
+        </div>
     </div>
 {% endblock %}

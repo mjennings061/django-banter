@@ -20,21 +20,21 @@
                         {% load filename %} {# Get filename #}
                         <td>{{ file.uploaded_file | getfilename }}</td>
                         <td><a
-                                class="btn waves-effect waves-light indigo darken-4"
+                                class="btn waves-effect waves-light uu-core-blue"
                                 href="{% url 'download_file' file_id=file.identifier %}"
                                 name="download">
                                 <i class="material-icons">cloud_download</i>
                             </a>
                         </td>
                         <td><a
-                                class="btn waves-effect waves-light indigo darken-4"
+                                class="btn waves-effect waves-light uu-core-blue"
                                 href="{% url 'create_algorithm' input_file_id=file.identifier %}"
                                 name="process">
                                 <i class="material-icons">autorenew</i>
                             </a>
                         </td>
                         <td><a
-                                class="btn waves-effect waves-light indigo darken-4"
+                                class="btn waves-effect waves-light uu-core-blue"
                                 href="{% url 'delete_file' file_id=file.identifier %}"
                                 name="delete">
                                 <i class="material-icons">delete</i>
@@ -45,7 +45,7 @@
             </tbody>
         </table>
         <br>
-        <a href="{% url 'create_algorithm' %}" class="waves-effect waves-light indigo darken-4 btn-large">
+        <a href="{% url 'create_algorithm' %}" class="waves-effect waves-light uu-core-blue btn-large">
             <i class="material-icons right">autorenew</i>Process</a>
         <br>
     {% endif %}
