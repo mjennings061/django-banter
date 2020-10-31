@@ -3,15 +3,24 @@
     <div class="container">
         <div class="row">
             <h5 class="white-text">Follow us on social media:</h5>
+            <div class="col s1 l1">
+                {% load static %}
+                <a href="https://www.linkedin.com/in/mjennings061/">
+                    <img src="{% static 'core/logo_LI.png' %}" height="50" width="50" alt="LinkedIn">
+                </a>
+            </div>
             <div class="col s2 l2">
-                <a class="waves-effect waves-light btn social github">
-                <i class="fa fa-github"></i>Github</a>
+                {% load static %}
+                <a href="https://www.github.com/mjennings061/">
+                    <img src="{% static 'core/logo_github.png' %}" height="50" width="50" alt="Github">
+                </a>
             </div>
         </div>
     </div>
     <div class="footer-copyright">
         <div class="container">
-            © Copyright 2020 Ulster University - Ulster University is a registered charity (registered with the Charity Commission for Northern Ireland NIC100166).
+            <p>This project is part of the Eastern Corridor Medical Engineering centre (ECME). It is supported by the European Union’s INTERREG VA Programme, managed by the Special EU Programmes Body (SEUPB)</p>
+            <p>© Copyright 2020 Ulster University - Ulster University is a registered charity (registered with the Charity Commission for Northern Ireland NIC100166).</p>
         </div>
     </div>
 </footer>

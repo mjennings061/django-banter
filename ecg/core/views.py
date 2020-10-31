@@ -218,7 +218,6 @@ def create_algorithm(request, input_file_id=None):
     return render(request, 'create_algorithm.html', context)
 
 
-# TODO: create a page to see all user algorithms
 @login_required()
 def show_algorithms(request):
     current_user = request.user
