@@ -1,19 +1,24 @@
 <!-- Nav bar (logo) https://materializecss.com/navbar.html -->
-<nav class="indigo darken-4">
-<div class="nav-wrapper">
-  <a href="{% url 'index' %}" class="brand-logo">NIBEC Cloud Computing</a>
-  <ul id="nav-mobile" class="right hide-on-med-and-down">
-    <li><a href="{% url 'index' %}">Home</a></li>
-      {# If a user is logged in, show a different navbar #}
-      {% if user.is_authenticated %}
-        <li><a href="{% url 'show_files' %}">{{ user.username }}</a></li>
-        <li><a href="{% url 'logout' %}">Logout</a></li>
-        <li><a href="{% url 'upload' %}"><i class="material-icons">cloud_upload</i></a></li>
-        <li><a href="{% url 'create_algorithm' %}"><i class="material-icons">autorenew</i></a></li>
-      {% else %}
-        <li><a href="{% url 'register' %}">Register</a></li>
-        <li><a href="{% url 'login' %}">Login</a></li>
-      {% endif %}
-  </ul>
-</div>
+<nav class="uu-core-blue">
+    <div class="nav-wrapper col s12 m6">
+      <a href="{% url 'index' %}" class="brand-logo">
+          {% load static %}
+          <img src="{% static 'core/UU_Avatar.jpg' %}" width="40" height="40" alt="logo">
+          NIBEC Cloud Computing
+      </a>
+      <ul id="nav-mobile" class="right hide-on-med-and-down">
+        <li><a href="{% url 'index' %}">Home</a></li>
+          {# If a user is logged in, show a different navbar #}
+          {% if user.is_authenticated %}
+            <li><a href="{% url 'show_files' %}">{{ user.username }}</a></li>
+            <li><a href="{% url 'logout' %}">Logout</a></li>
+            <li><a href="{% url 'upload' %}"><i class="material-icons">cloud_upload</i></a></li>
+            <li><a href="{% url 'create_algorithm' %}"><i class="material-icons">autorenew</i></a></li>
+            <li><a href="{% url 'show_algorithms' %}"><i class="material-icons">format_list_numbered</i></a></li>
+          {% else %}
+            <li><a href="{% url 'register' %}">Register</a></li>
+            <li><a href="{% url 'login' %}">Login</a></li>
+          {% endif %}
+      </ul>
+    </div>
 </nav>

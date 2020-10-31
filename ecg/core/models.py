@@ -4,6 +4,7 @@ import uuid     # used for unique ID generation
 import os   # used for filename changes
 from django.conf import settings
 import matlab.engine
+from django.dispatch.dispatcher import receiver
 
 
 class FileFormat(models.Model):
@@ -37,7 +38,6 @@ class FileFormat(models.Model):
         return self.name
 
 
-# Uploaded file model (connects to UploadedFileForm)
 class File(models.Model):
     """Uploaded file model
 
@@ -76,7 +76,8 @@ class Script(models.Model):
     uploaded_script     The script file itself
 
     """
-    def script_path(instance, filename):   # dynamic filename changing for the uploaded file when saving
+    def script_path(instance, filename):
+        """ Dynamic filename changing for the uploaded file when saving """
         filename_output = "algorithm/%s" % filename   # filename is username_id.ext e.g mj_45ds.jpeg
         return os.path.join(settings.MEDIA_ROOT, filename_output)  # return filepath for storage
 
@@ -111,6 +112,7 @@ class Algorithm(models.Model):
 
     """
     def save_executions(self, fields):
+        """ Get scripts from form data and create instances of Execution """
         scripts = {}
         execution = []
         keys = [key for key in fields if key.startswith('script')]  # get all keys matching 'script'
@@ -130,17 +132,26 @@ class Algorithm(models.Model):
                         algorithm=self,
                         order=i,
                     ))
-                execution[i].save()
+                execution[i].save()     # save the current instance of Execution
+                self.scripts.add(execution[i].script)   # add the m2m relation to Algorithm
+                self.save()
 
     def run_algorithm(self):
-        executions = Execution.objects.filter(algorithm=self).order_by('order')
-        for i, execution in enumerate(executions):
-            if i == 0:
-                execution.run_file()
-            else:
-                execution.data_input = executions[i - 1].data_output
-                execution.run_file()
-            execution.save()
+        """ Run each instance of Execution related to the Algorithm instance """
+        try:  # error handler for MATLAB and python scripts
+            executions = Execution.objects.filter(algorithm=self).order_by('order')  # ordered by selection order in form
+            for i, execution in enumerate(executions):  # for each execution to be processed
+                if i == 0:
+                    file_id = execution.run_file()   # process data_input file through the script to make data_output
+                    execution.save()
+                else:
+                    execution.data_input = executions[i - 1].data_output    # current input file is the previous output
+                    file_id = execution.run_file()
+                    execution.save()
+                    execution.data_input.delete()   # delete the middle-files
+            return file_id
+        except (matlab.engine.MatlabExecutionError, AttributeError):  # quit if an error is raised
+            return None
 
     identifier = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)  # unique ID for the instance
     user = models.ForeignKey(User, on_delete=models.CASCADE)  # link to the user creating it
@@ -163,29 +174,36 @@ class Execution(models.Model):
 
     """
     def run_file(self):
+        """ Run script by passing data_input and producing data_output  """
         if self.script.language == "M":     # if the script is a MATLAB file
-            self.eng = matlab.engine.connect_matlab()  # connect to an open MATLAB window open at ecg\media
-            data_file_path = self.data_input.uploaded_file.path     # get the datafile path from the model
-            script_file_path = self.script.uploaded_script.path     # get the script file path from the model
-            file_id = self.eng.handler(script_file_path, data_file_path)    # execute the file by passing thru handler
-            self.eng.quit()         # stop the MATLAB engine for this instance
+            try:
+                self.eng = matlab.engine.connect_matlab()  # connect to an open MATLAB window open at ecg\media
+                data_file_path = self.data_input.uploaded_file.path     # get the datafile path from the model
+                script_file_path = self.script.uploaded_script.path     # get the script file path from the model
+                file_id = self.eng.handler(script_file_path, data_file_path)  # execute the file by passing thru handler
+                self.eng.quit()         # stop the MATLAB engine for this instance
+            except (matlab.engine.MatlabExecutionError, AttributeError):  # quit if an error is raised
+                self.eng.quit()
+                return None
             if file_id is not None or 0:    # if the script processed ok
                 result_file = File(     # create an instance of File to store the result file in
                     name=f"result_{int(file_id)}",      # the file name is the same as the MATLAB output
                     user=self.data_input.user,          # user is required to attach the files to
                     format=self.script.data_output,     # format is derived from the script's default format
-                    uploaded_file=os.path.join(settings.MEDIA_ROOT, f"results/{int(file_id)}.csv"),
+                    uploaded_file=os.path.join(
+                        settings.MEDIA_ROOT,
+                        f"results/{int(file_id)}{self.script.data_output.extension}")
                 )
                 result_file.save()
                 self.data_output = result_file  # save all of result_file to data_output
         # TODO: Add a python run option
         if self.script.language == "P":
             file_id = 0
-        return file_id
+        return result_file.identifier
 
     identifier = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    data_input = models.ForeignKey(File, on_delete=models.CASCADE, related_name='execution_inputs', null=True)
-    data_output = models.ForeignKey(File, on_delete=models.CASCADE, related_name='execution_outputs', null=True)
+    data_input = models.ForeignKey(File, on_delete=models.SET_NULL, related_name='execution_inputs', null=True)
+    data_output = models.ForeignKey(File, on_delete=models.SET_NULL, related_name='execution_outputs', null=True)
     script = models.ForeignKey(Script, on_delete=models.CASCADE, related_name='execution_scripts', default=None)
     algorithm = models.ForeignKey(Algorithm, on_delete=models.CASCADE, related_name='execution_algorithm', default=None)
     order = models.IntegerField(default=0)
@@ -195,3 +213,25 @@ class Execution(models.Model):
 
     def __str__(self):
         return f"{self.algorithm} - {self.order}-{self.data_output}"
+
+
+def _delete_file(path):
+    """ Deletes file from filesystem. """
+    if os.path.isfile(path):
+        with open(path) as file:
+            file.close()
+        os.remove(path)
+
+
+@receiver(models.signals.post_delete, sender=File)
+def delete_file(sender, instance, *args, **kwargs):
+    """ Deletes files on post_delete """
+    if instance.uploaded_file:
+        _delete_file(instance.uploaded_file.path)
+
+
+@receiver(models.signals.post_delete, sender=Execution)
+def delete_execution_files(sender, instance, *args, **kwargs):
+    """ Deletes output file related to an Execution instance upon deletion """
+    if instance.data_output:
+        _delete_file(instance.data_output.uploaded_file.path)

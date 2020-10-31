@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    {% if current_user.is_authenticated %}
+        <br>
+        <h5>All algorithms for {{ current_user.username }}:</h5>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Scripts</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for algorithm in algorithms %}
+                    <tr>
+                        <td>{{ algorithm.name }}</td>
+                        <td>{{ algorithm.description }}</td>
+                        <td>
+                            {% for script in algorithm.scripts.all %}
+                                <p>{{ forloop.counter }}- {{ script }}</p>
+                            {% endfor %}
+                        </td>
+                        <td><a
+                                class="btn waves-effect waves-light indigo darken-4"
+                                href="{% url 'delete_algorithm' algorithm_id=algorithm.identifier %}"
+                                name="delete">
+                                <i class="material-icons">delete</i>
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <br>
+        <a href="{% url 'create_algorithm' %}" class="waves-effect waves-light indigo darken-4 btn-large">
+            <i class="material-icons right">autorenew</i>Process</a>
+        <br>
+    {% endif %}
+{% endblock %}

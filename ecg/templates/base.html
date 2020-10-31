@@ -3,25 +3,29 @@
 <head>
     {% load static %}
      <!-- Compiled and minified CSS and JS for materialize/AJAX -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link rel="stylesheet" href="{% static 'css/materialize.css' %}">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <meta charset="UTF-8">
-    <title>NIBEC</title>
+    <title>NIBEC Computing</title>
 </head>
 
 <body>
-
     {% include 'navbar.html' %} {# Navbar code #}
     {% include 'messages.html' %} {# User alert messages #}
 
-    <div class="container">
-        {% block content %}{% endblock content %}
-    </div>
+    <main>
+        <div class="container">
+            {% block content %}{% endblock content %}
+        </div>
+    </main>
+
+    {% include 'footer.html' %} {# page footer #}
 
     <!-- Compiled and minified JavaScript for materialize -->
     <script src="{% static 'base.js' %}"></script> {# Needed for select statements in forms #}
     {% block javascript %}{% endblock javascript %}
 </body>
+
 </html>
