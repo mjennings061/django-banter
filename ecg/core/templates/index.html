@@ -48,5 +48,20 @@
                 </div>
             </div>
         </div>
+        <div class="col s4 m4">
+            <div class="card">
+                <div class="card-image">
+                    {% load static %}
+                    <img src="{% static 'core/data_files.jpg' %}" alt="data files">
+                    <a href="{% url 'show_files' %}"
+                        class="btn-floating halfway-fab waves-effect waves-light uu-bright-blue">
+                    <i class="material-icons">chevron_right</i></a>
+                </div>
+                <div class="card-content">
+                    <span class="card-title">View Your Data</span>
+                    <p>View your uploaded data files before creating your algorithm</p>
+                </div>
+            </div>
+        </div>
     </div>
 {% endblock %}
