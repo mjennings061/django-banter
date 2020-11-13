@@ -69,3 +69,8 @@ ecg
        
         
 ```
+
+## Dependencies
+The venv was created using Python 3.7. Packages required are:
+- Django
+- Matlab Engine for Python

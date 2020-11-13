@@ -6,6 +6,7 @@ ecg/core/__pycache__/
 ecg/core/__pycache__/forms.cpython-38.pyc
 ecg/venv/
 ecg/venv2/
+ecg/venv37/
 ecg/media/results/
 ecg/media/user_data/*
 .idea/

@@ -27,7 +27,7 @@ with open("C:/Users/MJ/OneDrive - Ulster University/Documents/PhD/Django/DJ_SECR
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1']
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'core',
+    'mod_wsgi.server',
 ]
 
 MIDDLEWARE = [
@@ -124,10 +125,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
-# STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
-]
 
 THUMBNAIL_HIGH_RESOLUTION = True    # easy_thumbnail for MACOS
 
@@ -136,3 +133,15 @@ MEDIA_URL = 'media/'
 
 LOGIN_URL = 'login'     # @login_required will redirect to here
 LOGIN_REDIRECT_URL = 'account'
+
+# Deployment settings https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/#deployment-checklist
+if DEBUG is False:
+    # CSRF_COOKIE_SECURE = True
+    # SESSION_COOKIE_SECURE = True
+    # SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+    # SECURE_SSL_REDIRECT = True
+    STATIC_ROOT = 'C:/Apache24/static'
+else:
+    STATICFILES_DIRS = [
+        os.path.join(BASE_DIR, 'static'),
+    ]
