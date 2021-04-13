@@ -3,7 +3,7 @@ from django.contrib.auth.models import User     # import django's model for the 
 import uuid     # used for unique ID generation
 import os   # used for filename changes
 from django.conf import settings
-import matlab.engine
+# import matlab.engine
 from django.dispatch.dispatcher import receiver
 
 
