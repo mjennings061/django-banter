@@ -21,12 +21,15 @@ BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '0v*%ivh$7*t$&5l=q0a8dpg+b5(5z^ul0^pt2+yoc9zkq3r&6)'
+with open("C:/Users/MJ/OneDrive - Ulster University/Documents/PhD/Django/DJ_SECRET_KEY.txt") as f:
+    SECRET_KEY = f.read().strip()
+# You can use the random secret key below, or you can use the file-based key above (recommended)
+# SECRET_KEY = 0v*%gvb$7*j$&5l=k0a5dlg+b9(5h^jl0^kt2+coc9nkj3r&9)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1']
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -39,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'core',
+    'mod_wsgi.server',
 ]
 
 MIDDLEWARE = [
@@ -123,10 +127,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
-# STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
-]
 
 THUMBNAIL_HIGH_RESOLUTION = True    # easy_thumbnail for MACOS
 
@@ -135,3 +135,15 @@ MEDIA_URL = 'media/'
 
 LOGIN_URL = 'login'     # @login_required will redirect to here
 LOGIN_REDIRECT_URL = 'account'
+
+# Deployment settings https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/#deployment-checklist
+if DEBUG is False:
+    # CSRF_COOKIE_SECURE = True
+    # SESSION_COOKIE_SECURE = True
+    # SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+    # SECURE_SSL_REDIRECT = True
+    STATIC_ROOT = 'C:/Apache24/static'
+else:
+    STATICFILES_DIRS = [
+        os.path.join(BASE_DIR, 'static'),
+    ]
