@@ -23,6 +23,8 @@ BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 with open("C:/Users/MJ/OneDrive - Ulster University/Documents/PhD/Django/DJ_SECRET_KEY.txt") as f:
     SECRET_KEY = f.read().strip()
+# You can use the random secret key below, or you can use the file-based key above (recommended)
+# SECRET_KEY = 0v*%gvb$7*j$&5l=k0a5dlg+b9(5h^jl0^kt2+coc9nkj3r&9)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True

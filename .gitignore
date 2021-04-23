@@ -1,12 +1,11 @@
-
 tree.txt
+backup/
 ecg/core/__pycache__/
 *.pyc
-*.pyc
-ecg/core/__pycache__/forms.cpython-38.pyc
 ecg/venv/
 ecg/venv2/
 ecg/venv37/
-ecg/media/results/
+ecg/media/algorithm/*
+ecg/media/results/*
 ecg/media/user_data/*
 .idea/
