@@ -21,6 +21,7 @@ BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
+# TODO: Create path to secret key.
 with open("C:/Users/MJ/OneDrive - Ulster University/Documents/PhD/Django/DJ_SECRET_KEY.txt") as f:
     SECRET_KEY = f.read().strip()
 # You can use the random secret key below, or you can use the file-based key above (recommended)

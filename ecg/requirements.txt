@@ -11,7 +11,7 @@ jupyter-client==6.1.11
 jupyter-core==4.7.1
 matlab-kernel==0.16.11
 metakernel==0.27.5
-mod-wsgi==4.7.1
+# mod-wsgi==4.7.1
 parso==0.8.1
 pexpect==4.8.0
 pickleshare==0.7.5
