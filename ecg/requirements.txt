@@ -10,7 +10,6 @@ jedi==0.18.0
 jupyter-client==6.1.11
 jupyter-core==4.7.1
 matlab-kernel==0.16.11
-matlabengineforpython===R2020a
 metakernel==0.27.5
 mod-wsgi==4.7.1
 parso==0.8.1
